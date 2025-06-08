@@ -15,7 +15,6 @@ import {
 import { Markdown } from "@/components/ui/markdown";
 import { ScrollButton } from "@/components/ui/scroll-button";
 import { PromptInput } from "@/components/prompt-input";
-import { Button } from "@/components/ui/button";
 import { CopyButton } from "@/components/ui/copy-button";
 
 export default function Home() {

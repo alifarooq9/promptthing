@@ -4,10 +4,14 @@ import { createGoogleGenerativeAI } from "@ai-sdk/google";
 export async function POST(req: Request) {
   const { messages }: { messages: UIMessage[] } = await req.json();
 
+  const apiKey = process.env.GOOGLE_API_KEY;
+  if (!apiKey) {
+    return new Response("GOOGLE_API_KEY is not set", { status: 500 });
+  }
+
   try {
     const google = createGoogleGenerativeAI({
-      // TODO: Replace with env
-      apiKey: "AIzaSyDxVTsNHIWjbNPI6Vt2J_T3wUmtxHtdiX8",
+      apiKey: apiKey,
     });
 
     const result = streamText({
