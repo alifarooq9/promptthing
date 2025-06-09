@@ -45,7 +45,10 @@ export default function Home() {
                   <div className="prose prose-neutral max-w-max dark:prose-invert text-foreground overflow-hidden">
                     <Markdown>
                       {webSearchInvoked?.toolInvocation.state === "call"
-                        ? "Searching the web..."
+                        ? webSearchInvoked?.toolInvocation?.toolName ===
+                          "webSearch"
+                          ? "Searching the web..."
+                          : "Invoking tool..."
                         : message.content === ""
                           ? "Loading..."
                           : message.content}

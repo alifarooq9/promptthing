@@ -36,6 +36,7 @@ export async function POST(req: Request) {
         const response = await tvly.search(query, {
           maxResults: 5,
           searchDepth: "advanced",
+          includeRawContent: "text",
         });
 
         return response.results.map((result) => ({
@@ -44,6 +45,7 @@ export async function POST(req: Request) {
           description: result.content,
           content: result.content,
           score: result.score,
+          rawContent: result.rawContent?.slice(0, 1000) ?? "",
         }));
       },
     });
