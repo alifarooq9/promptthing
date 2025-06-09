@@ -19,27 +19,27 @@ import { CopyButton } from "@/components/ui/copy-button";
 
 export default function Home() {
   const { messages, append, status } = useChat({
-    api: "/api/v1/completion",
+    api: "/api/v1/chat",
   });
 
   return (
-    <div className="container mx-auto max-w-3xl flex flex-col">
-      <div className="flex-1 w-full pt-14 pb-56">
-        <ChatContainerRoot className="h-full w-full flex flex-col">
-          <ChatContainerContent className="p-4 space-y-14 w-full">
-            {messages.map((message) => {
-              const isAssistant = message.role === "assistant";
+    <div className="flex-1 w-full relative">
+      <ChatContainerRoot className="w-full h-svh flex flex-col">
+        <ChatContainerContent className="p-4 relative space-y-14 pt-16 pb-38 w-full max-w-3xl mx-auto">
+          {messages.map((message, idx) => {
+            const isAssistant = message.role === "assistant";
 
-              return (
-                <Message
-                  key={message.id}
-                  className={
-                    message.role === "user" ? "justify-end" : "justify-start"
-                  }
-                >
-                  {isAssistant ? (
-                    <div className="prose prose-neutral max-w-max dark:prose-invert text-foreground overflow-hidden">
-                      <Markdown>{message.content}</Markdown>
+            return (
+              <Message
+                key={message.id}
+                className={
+                  message.role === "user" ? "justify-end" : "justify-start"
+                }
+              >
+                {isAssistant ? (
+                  <div className="prose prose-neutral max-w-max dark:prose-invert text-foreground overflow-hidden">
+                    <Markdown>{message.content}</Markdown>
+                    {status !== "streaming" && (
                       <MessageActions>
                         <MessageAction tooltip="Copy message">
                           <CopyButton
@@ -50,24 +50,24 @@ export default function Home() {
                           />
                         </MessageAction>
                       </MessageActions>
-                    </div>
-                  ) : (
-                    <MessageContent className="bg-muted text-foreground px-4">
-                      {message.content}
-                    </MessageContent>
-                  )}
-                </Message>
-              );
-            })}
-          </ChatContainerContent>
+                    )}
+                  </div>
+                ) : (
+                  <MessageContent className="bg-muted text-foreground px-4">
+                    {message.content}
+                  </MessageContent>
+                )}
+              </Message>
+            );
+          })}
           <ChatContainerScrollAnchor />
-          <div className="absolute right-4 bottom-4">
-            <ScrollButton className="shadow-sm" />
-          </div>
-        </ChatContainerRoot>
-      </div>
+        </ChatContainerContent>
+        <div className="absolute w-fit max-w-2xl mx-auto inset-x-0 h-fit bottom-40">
+          <ScrollButton className="shadow-sm" />
+        </div>
+      </ChatContainerRoot>
 
-      <div className="fixed inset-x-0 bottom-0 mx-auto max-w-3xl px-3 pb-3 md:px-5 md:pb-5">
+      <div className="absolute inset-x-0 bottom-0 mx-auto max-w-3xl px-3 pb-3 md:px-5 md:pb-5">
         <PromptInput
           isLoading={status === "streaming"}
           onSubmit={(prompt) => {

@@ -1,0 +1,2 @@
+- [x] Chat UI with markdown
+- [x] able to send messages and receive responses

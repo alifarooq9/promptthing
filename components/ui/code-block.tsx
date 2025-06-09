@@ -67,11 +67,7 @@ function CodeBlockCode({
   }, [code, language, theme]);
 
   const classNames = cn(
-    "min-w-0 overflow-x-auto text-[13px] bg-inherit font-mono [&>pre]:px-4 [&>pre]:py-4 [&>pre]:!bg-transparent [&>pre]:m-0",
-    "[&::-webkit-scrollbar]:h-2 [&::-webkit-scrollbar]:w-2",
-    "[&::-webkit-scrollbar-track]:bg-transparent",
-    "[&::-webkit-scrollbar-thumb]:bg-muted-foreground/30 [&::-webkit-scrollbar-thumb]:rounded-full",
-    "[&::-webkit-scrollbar-thumb:hover]:bg-muted-foreground/50",
+    "min-w-0 overflow-x-auto custom-scrollbar text-[13px] bg-inherit font-mono [&>pre]:px-4 [&>pre]:py-4 [&>pre]:!bg-transparent [&>pre]:m-0",
     className
   );
 

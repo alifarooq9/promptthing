@@ -14,8 +14,8 @@ export type ScrollButtonProps = {
 
 function ScrollButton({
   className,
-  variant = "outline",
-  size = "sm",
+  variant = "secondary",
+  size = "icon",
   ...props
 }: ScrollButtonProps) {
   const { isAtBottom, scrollToBottom } = useStickToBottomContext();
@@ -25,7 +25,7 @@ function ScrollButton({
       variant={variant}
       size={size}
       className={cn(
-        "h-10 w-10 rounded-full transition-all duration-150 ease-out",
+        "rounded-full border border-border cursor-pointer hover:bg-secondary hover:scale-110 transition-all duration-150 ease-out",
         !isAtBottom
           ? "translate-y-0 scale-100 opacity-100"
           : "pointer-events-none translate-y-4 scale-95 opacity-0",

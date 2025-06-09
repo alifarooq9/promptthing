@@ -1,4 +1,4 @@
-import { streamText, UIMessage } from "ai";
+import { smoothStream, streamText, UIMessage } from "ai";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 
 export async function POST(req: Request) {
@@ -18,6 +18,7 @@ export async function POST(req: Request) {
       model: google("models/gemini-2.0-flash-exp"),
       system: "You are a helpful assistant.",
       messages,
+      experimental_transform: [smoothStream({ chunking: "word" })],
     });
 
     return result.toDataStreamResponse();
