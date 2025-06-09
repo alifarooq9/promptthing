@@ -6,19 +6,14 @@ import {
   ChatContainerRoot,
   ChatContainerScrollAnchor,
 } from "@/components/ui/chat-container";
-import {
-  Message,
-  MessageAction,
-  MessageActions,
-  MessageContent,
-} from "@/components/ui/message";
+import { Message, MessageContent } from "@/components/ui/message";
 import { Markdown } from "@/components/ui/markdown";
 import { ScrollButton } from "@/components/ui/scroll-button";
 import { PromptInput } from "@/components/prompt-input";
-import { CopyButton } from "@/components/ui/copy-button";
+import { MessageActions } from "@/components/message-actions";
 
 export default function Home() {
-  const { messages, append, status } = useChat({
+  const { messages, append, status, setMessages } = useChat({
     api: "/api/v1/chat",
   });
 
@@ -26,9 +21,8 @@ export default function Home() {
     <div className="flex-1 w-full relative">
       <ChatContainerRoot className="w-full h-svh flex flex-col">
         <ChatContainerContent className="p-4 relative space-y-14 pt-16 pb-38 w-full max-w-3xl mx-auto">
-          {messages.map((message, idx) => {
+          {messages.map((message, index) => {
             const isAssistant = message.role === "assistant";
-
             return (
               <Message
                 key={message.id}
@@ -39,17 +33,15 @@ export default function Home() {
                 {isAssistant ? (
                   <div className="prose prose-neutral max-w-max dark:prose-invert text-foreground overflow-hidden">
                     <Markdown>{message.content}</Markdown>
-                    {status !== "streaming" && (
-                      <MessageActions>
-                        <MessageAction tooltip="Copy message">
-                          <CopyButton
-                            content={message.content}
-                            size="icon"
-                            className="h-8 w-8"
-                            variant="ghost"
-                          />
-                        </MessageAction>
-                      </MessageActions>
+                    {(index === messages.length - 1
+                      ? status !== "streaming"
+                      : true) && (
+                      <MessageActions
+                        message={message}
+                        messages={messages}
+                        setMessages={setMessages}
+                        append={append}
+                      />
                     )}
                   </div>
                 ) : (

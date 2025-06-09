@@ -19,8 +19,8 @@ type CopyButtonProps = Omit<HTMLMotionProps<"button">, "children" | "onCopy"> &
 function CopyButton({
   content,
   className,
-  size,
-  variant,
+  size = "icon",
+  variant = "ghost",
   delay = 3000,
   onClick,
   onCopy,
@@ -69,7 +69,7 @@ function CopyButton({
       whileTap={{ scale: 0.95 }}
       className={cn(
         buttonVariants({ variant, size }),
-        "cursor-pointer",
+        "cursor-pointer h-8 w-8",
         className
       )}
       onClick={handleCopy}

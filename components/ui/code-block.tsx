@@ -1,6 +1,6 @@
 "use client";
 
-import { CopyButton } from "@/components/ui/copy-button";
+import { CopyButton } from "@/components/copy-button";
 import { cn } from "@/lib/utils";
 import React, { useEffect, useState } from "react";
 import { codeToHtml } from "shiki";

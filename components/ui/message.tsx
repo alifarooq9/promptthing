@@ -83,12 +83,14 @@ const MessageActions = ({
   className,
   ...props
 }: MessageActionsProps) => (
-  <div
-    className={cn("text-muted-foreground flex items-center gap-2", className)}
-    {...props}
-  >
-    {children}
-  </div>
+  <TooltipProvider delayDuration={0}>
+    <div
+      className={cn("text-muted-foreground flex items-center gap-2", className)}
+      {...props}
+    >
+      {children}
+    </div>
+  </TooltipProvider>
 );
 
 export type MessageActionProps = {
@@ -106,14 +108,12 @@ const MessageAction = ({
   ...props
 }: MessageActionProps) => {
   return (
-    <TooltipProvider>
-      <Tooltip {...props}>
-        <TooltipTrigger asChild>{children}</TooltipTrigger>
-        <TooltipContent side={side} className={className}>
-          {tooltip}
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+    <Tooltip {...props}>
+      <TooltipTrigger asChild>{children}</TooltipTrigger>
+      <TooltipContent side={side} className={className}>
+        {tooltip}
+      </TooltipContent>
+    </Tooltip>
   );
 };
 

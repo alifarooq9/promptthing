@@ -12,7 +12,7 @@ import React from "react";
 
 type PromptInputProps = {
   isLoading?: boolean;
-  onSubmit?: (prompt: string) => void;
+  onSubmit: (prompt: string) => void;
 };
 
 export function PromptInput({ isLoading, onSubmit }: PromptInputProps) {
@@ -22,9 +22,9 @@ export function PromptInput({ isLoading, onSubmit }: PromptInputProps) {
     if (!prompt.trim()) {
       return;
     }
-    if (onSubmit) {
-      onSubmit(prompt);
-    }
+
+    onSubmit(prompt);
+
     setPrompt("");
   }, [prompt, onSubmit]);
 
