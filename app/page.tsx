@@ -18,7 +18,7 @@ import { PromptInput } from "@/components/prompt-input";
 import { CopyButton } from "@/components/ui/copy-button";
 
 export default function Home() {
-  const { messages, append, error, status } = useChat({
+  const { messages, append, status } = useChat({
     api: "/api/v1/completion",
   });
 
