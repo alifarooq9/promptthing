@@ -9,13 +9,21 @@ import {
 import { Button } from "@/components/ui/button";
 import { ArrowUp, Globe, Mic, MoreHorizontal, Plus } from "lucide-react";
 import React from "react";
+import { cn } from "@/lib/utils";
 
 type PromptInputProps = {
   isLoading?: boolean;
   onSubmit: (prompt: string) => void;
+  searchEnabled: boolean;
+  setSearchEnabled: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
-export function PromptInput({ isLoading, onSubmit }: PromptInputProps) {
+export function PromptInput({
+  isLoading,
+  onSubmit,
+  searchEnabled,
+  setSearchEnabled,
+}: PromptInputProps) {
   const [prompt, setPrompt] = React.useState("");
 
   const handleOnSubmit = React.useCallback(() => {
@@ -44,7 +52,7 @@ export function PromptInput({ isLoading, onSubmit }: PromptInputProps) {
 
         <PromptInputActions className="mt-5 flex w-full items-center justify-between gap-2 px-3 pb-3">
           <div className="flex items-center gap-2">
-            <PromptInputAction tooltip="Add a new action">
+            <PromptInputAction tooltip="Attach a file">
               <Button
                 variant="outline"
                 size="icon"
@@ -54,8 +62,12 @@ export function PromptInput({ isLoading, onSubmit }: PromptInputProps) {
               </Button>
             </PromptInputAction>
 
-            <PromptInputAction tooltip="Search">
-              <Button variant="outline" className="rounded-full">
+            <PromptInputAction tooltip="Search web">
+              <Button
+                variant={searchEnabled ? "default" : "outline"}
+                className={cn("rounded-full cursor-pointer")}
+                onClick={() => setSearchEnabled(!searchEnabled)}
+              >
                 <Globe size={18} />
                 Search
               </Button>

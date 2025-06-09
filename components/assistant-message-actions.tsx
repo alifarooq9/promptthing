@@ -2,14 +2,11 @@
 
 import { CopyButton } from "@/components/copy-button";
 import { Button } from "@/components/ui/button";
-import {
-  MessageAction,
-  MessageActions as MessageActionsUI,
-} from "@/components/ui/message";
+import { MessageAction, MessageActions } from "@/components/ui/message";
 import { ChatRequestOptions, CreateMessage, Message, UIMessage } from "ai";
 import { RefreshCcwIcon } from "lucide-react";
 
-type MessageActionsProps = {
+type AssistantMessageActionsProps = {
   message: UIMessage;
   messages: UIMessage[];
   setMessages: (
@@ -21,12 +18,12 @@ type MessageActionsProps = {
   ) => Promise<string | null | undefined>;
 };
 
-export function MessageActions({
+export function AssistantMessageActions({
   message,
   messages,
   setMessages,
   append,
-}: MessageActionsProps) {
+}: AssistantMessageActionsProps) {
   const handleRegenerate = () => {
     const currentMessageIndex = messages.findIndex(
       (msg) => msg.id === message.id
@@ -43,7 +40,7 @@ export function MessageActions({
   };
 
   return (
-    <MessageActionsUI>
+    <MessageActions>
       <MessageAction tooltip="Copy message">
         <CopyButton content={message.content} />
       </MessageAction>
@@ -57,6 +54,6 @@ export function MessageActions({
           <RefreshCcwIcon />
         </Button>
       </MessageAction>
-    </MessageActionsUI>
+    </MessageActions>
   );
 }
