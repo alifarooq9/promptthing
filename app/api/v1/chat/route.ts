@@ -1,4 +1,4 @@
-import { smoothStream, streamText, Tool, tool, UIMessage } from "ai";
+import { smoothStream, streamText, tool, UIMessage } from "ai";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { z } from "zod";
 import { tavily } from "@tavily/core";
