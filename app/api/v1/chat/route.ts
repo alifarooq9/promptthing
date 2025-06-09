@@ -22,7 +22,7 @@ export async function POST(req: Request) {
 
     if (search && mdlConfig.supportsWebSearch) {
       tools = {
-        webSearchTool: webSearchTool(),
+        webSearch: webSearchTool(),
       };
     }
 
