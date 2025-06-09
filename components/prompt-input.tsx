@@ -6,16 +6,27 @@ import {
   PromptInputActions,
   PromptInputTextarea,
 } from "@/components/ui/prompt-input";
-import { Button } from "@/components/ui/button";
-import { ArrowUp, Globe, Mic, MoreHorizontal, Plus } from "lucide-react";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { ArrowUp, Settings, Globe, Mic } from "lucide-react";
 import React from "react";
 import { cn } from "@/lib/utils";
+import { ModelId } from "@/config/models";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+  SelectTrigger,
+} from "@/components/ui/select";
+import { getAvailableModels, getModelConfig } from "@/lib/models";
 
 type PromptInputProps = {
   isLoading?: boolean;
   onSubmit: (prompt: string) => void;
   searchEnabled: boolean;
   setSearchEnabled: React.Dispatch<React.SetStateAction<boolean>>;
+  model: ModelId;
+  setModel: React.Dispatch<React.SetStateAction<ModelId>>;
 };
 
 export function PromptInput({
@@ -23,6 +34,8 @@ export function PromptInput({
   onSubmit,
   searchEnabled,
   setSearchEnabled,
+  model,
+  setModel,
 }: PromptInputProps) {
   const [prompt, setPrompt] = React.useState("");
 
@@ -35,6 +48,9 @@ export function PromptInput({
 
     setPrompt("");
   }, [prompt, onSubmit]);
+
+  const availableModels = getAvailableModels();
+  const selectedModel = getModelConfig(model);
 
   return (
     <PromptInputUi
@@ -52,34 +68,58 @@ export function PromptInput({
 
         <PromptInputActions className="mt-5 flex w-full items-center justify-between gap-2 px-3 pb-3">
           <div className="flex items-center gap-2">
-            <PromptInputAction tooltip="Attach a file">
-              <Button
-                variant="outline"
-                size="icon"
-                className="size-9 rounded-full"
+            <PromptInputAction tooltip="Change model">
+              <Select
+                value={model}
+                onValueChange={(value) => setModel(value as ModelId)}
               >
-                <Plus size={18} />
-              </Button>
+                <SelectTrigger
+                  size="sm"
+                  className={cn(
+                    buttonVariants({
+                      variant: "outline",
+                      size: "sm",
+                    }),
+                    "rounded-full cursor-pointer max-w-36 justify-start"
+                  )}
+                >
+                  <SelectValue placeholder="Select model" />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableModels.map((availableModel) => (
+                    <SelectItem
+                      key={availableModel}
+                      value={availableModel}
+                      className="cursor-pointer"
+                    >
+                      {availableModel}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </PromptInputAction>
 
-            <PromptInputAction tooltip="Search web">
-              <Button
-                variant={searchEnabled ? "default" : "outline"}
-                className={cn("rounded-full cursor-pointer")}
-                onClick={() => setSearchEnabled(!searchEnabled)}
-              >
-                <Globe size={18} />
-                Search
-              </Button>
-            </PromptInputAction>
+            {selectedModel?.supportsWebSearch && (
+              <PromptInputAction tooltip="Search web">
+                <Button
+                  variant={searchEnabled ? "default" : "outline"}
+                  size="sm"
+                  className={cn("rounded-full cursor-pointer")}
+                  onClick={() => setSearchEnabled(!searchEnabled)}
+                >
+                  <Globe size={18} />
+                  Search
+                </Button>
+              </PromptInputAction>
+            )}
 
             <PromptInputAction tooltip="More actions">
               <Button
                 variant="outline"
                 size="icon"
-                className="size-9 rounded-full"
+                className="size-8 rounded-full"
               >
-                <MoreHorizontal size={18} />
+                <Settings size={18} />
               </Button>
             </PromptInputAction>
           </div>

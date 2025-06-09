@@ -18,15 +18,23 @@ import {
   ReasoningResponse,
   ReasoningTrigger,
 } from "@/components/ui/reasoning";
+import { ModelId } from "@/config/models";
+
+type UseChatBody = {
+  search: boolean;
+  model: ModelId;
+};
 
 export default function Home() {
   const [searchEnabled, setSearchEnabled] = React.useState(false);
+  const [model, setModel] = React.useState<ModelId>("gemini-2.5-flash");
 
   const { messages, append, status, setMessages, error } = useChat({
     api: "/api/v1/chat",
     body: {
       search: searchEnabled,
-    },
+      model,
+    } as UseChatBody,
   });
 
   return (
@@ -125,6 +133,8 @@ export default function Home() {
           }}
           searchEnabled={searchEnabled}
           setSearchEnabled={setSearchEnabled}
+          model={model}
+          setModel={setModel}
         />
       </div>
     </div>
