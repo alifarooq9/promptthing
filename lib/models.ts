@@ -46,7 +46,7 @@ const createModel = (config: ModelConfig) => {
   }
 };
 
-export const useModel = (model?: Models) => {
+export const getModel = (model?: Models) => {
   const selectedModel = model || modelsIds["gemini-2.5-flash"];
 
   const config = modelsConfig[selectedModel];
@@ -72,6 +72,6 @@ export const getModelConfig = (model: Models) => {
 
 export const getModelsByProvider = (provider: Provider) => {
   return Object.entries(modelsConfig)
-    .filter(([_, config]) => config.provider === provider)
+    .filter(([, config]) => config.provider === provider)
     .map(([modelId]) => modelId as Models);
 };

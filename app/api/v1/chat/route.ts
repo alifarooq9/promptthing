@@ -1,7 +1,7 @@
-import { smoothStream, streamText, tool, UIMessage } from "ai";
+import { smoothStream, streamText, UIMessage } from "ai";
 import { GoogleGenerativeAIProviderOptions } from "@ai-sdk/google";
 import { OpenRouterProviderOptions } from "@openrouter/ai-sdk-provider";
-import { useModel } from "@/lib/models";
+import { getModel } from "@/lib/models";
 import { webSearchTool } from "@/lib/tools";
 import { ModelId } from "@/config/models";
 
@@ -18,7 +18,7 @@ export async function POST(req: Request) {
   let tools;
 
   try {
-    const mdlConfig = useModel(model);
+    const mdlConfig = getModel(model);
 
     if (search && mdlConfig.supportsWebSearch) {
       tools = {
