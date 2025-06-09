@@ -12,11 +12,17 @@ import { ScrollButton } from "@/components/ui/scroll-button";
 import { PromptInput } from "@/components/prompt-input";
 import { AssistantMessageActions } from "@/components/assistant-message-actions";
 import React from "react";
+import {
+  Reasoning,
+  ReasoningContent,
+  ReasoningResponse,
+  ReasoningTrigger,
+} from "@/components/ui/reasoning";
 
 export default function Home() {
   const [searchEnabled, setSearchEnabled] = React.useState(false);
 
-  const { messages, append, status, setMessages } = useChat({
+  const { messages, append, status, setMessages, error } = useChat({
     api: "/api/v1/chat",
     body: {
       search: searchEnabled,
@@ -43,13 +49,32 @@ export default function Home() {
               >
                 {isAssistant ? (
                   <div className="prose prose-neutral max-w-max dark:prose-invert text-foreground overflow-hidden">
+                    {message.parts.filter((part) => part.type === "reasoning")
+                      .length > 0 && (
+                      <Reasoning>
+                        <ReasoningTrigger>Show reasoning</ReasoningTrigger>
+                        <ReasoningContent className="ml-2 border-l-2 px-2">
+                          {message.parts
+                            .filter((part) => part.type === "reasoning")
+                            .map((part, index) => (
+                              <ReasoningResponse
+                                key={index}
+                                text={part.reasoning}
+                              />
+                            ))}
+                        </ReasoningContent>
+                      </Reasoning>
+                    )}
                     <Markdown>
                       {webSearchInvoked?.toolInvocation.state === "call"
                         ? webSearchInvoked?.toolInvocation?.toolName ===
                           "webSearch"
                           ? "Searching the web..."
                           : "Invoking tool..."
-                        : message.content === ""
+                        : message.content === "" &&
+                            !message.parts
+                              .flatMap((part) => part.type)
+                              .includes("reasoning")
                           ? "Loading..."
                           : message.content}
                     </Markdown>
@@ -75,6 +100,14 @@ export default function Home() {
           {status === "submitted" && (
             <Message className="prose prose-neutral max-w-max dark:prose-invert text-foreground overflow-hidden">
               <Markdown>Loading...</Markdown>
+            </Message>
+          )}
+          {error && (
+            <Message>
+              <Markdown>
+                {error.message ||
+                  "An error occurred while processing your request."}
+              </Markdown>
             </Message>
           )}
           <ChatContainerScrollAnchor />

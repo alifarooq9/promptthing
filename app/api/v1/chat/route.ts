@@ -1,7 +1,14 @@
 import { smoothStream, streamText, tool, UIMessage } from "ai";
-import { createGoogleGenerativeAI } from "@ai-sdk/google";
+import {
+  createGoogleGenerativeAI,
+  GoogleGenerativeAIProviderOptions,
+} from "@ai-sdk/google";
 import { z } from "zod";
 import { tavily } from "@tavily/core";
+import {
+  // createOpenRouter,
+  OpenRouterProviderOptions,
+} from "@openrouter/ai-sdk-provider";
 
 export async function POST(req: Request) {
   const { messages, search }: { messages: UIMessage[]; search: boolean } =
@@ -17,6 +24,10 @@ export async function POST(req: Request) {
   if (!tavilyApiKey) {
     return new Response("EXA_API_KEY is not set", { status: 500 });
   }
+  const openRouterApiKey = process.env.OPENROUTER_API_KEY;
+  if (!openRouterApiKey) {
+    return new Response("OPENROUTER_API_KEY is not set", { status: 500 });
+  }
 
   let tools;
 
@@ -24,6 +35,10 @@ export async function POST(req: Request) {
     const google = createGoogleGenerativeAI({
       apiKey: apiKey,
     });
+
+    // const openrouter = createOpenRouter({
+    //   apiKey: openRouterApiKey,
+    // });
 
     const tvly = tavily({ apiKey: tavilyApiKey });
 
@@ -55,19 +70,36 @@ export async function POST(req: Request) {
     }
 
     const result = streamText({
-      model: google("models/gemini-2.0-flash-lite"),
+      model: google("gemini-2.0-flash-thinking-exp-01-21"),
       system: search
         ? "You are a helpful assistant. your all knowledge is based on the web search results. search it before answering any questions. go with the results with the highest score"
         : "You are a helpful assistant.",
       messages,
-      maxTokens: 2048,
+      maxTokens: 1024,
       experimental_transform: [smoothStream({ chunking: "word" })],
       tools: tools,
       maxSteps: 2,
+      providerOptions: {
+        google: {
+          thinkingConfig: {
+            thinkingBudget: 1024,
+            includeThoughts: true,
+          },
+        } satisfies GoogleGenerativeAIProviderOptions,
+        openrouter: {
+          reasoning: {
+            effort: "medium",
+            max_tokens: 1024,
+          },
+        } satisfies OpenRouterProviderOptions,
+      },
     });
 
-    return result.toDataStreamResponse();
+    return result.toDataStreamResponse({
+      sendReasoning: true,
+    });
   } catch (error) {
+    console.error("Error processing request:", error);
     return new Response(
       error instanceof Error
         ? (error.message ?? "No messages provided")
