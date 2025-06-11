@@ -19,12 +19,10 @@ import {
   SelectLabel,
   SelectTrigger,
 } from "@/components/ui/select";
-import {
-  getAvailableModels,
-  getAvailableModelsWithCategories,
-  getModelConfig,
-} from "@/lib/models";
+import { getAvailableModelsWithCategories, getModelConfig } from "@/lib/models";
 import { arrayIcons } from "@/components/ui/icons";
+import { useSettingsModalStore } from "@/store/use-settings-modal";
+import { useConfigStore } from "@/store/use-config";
 
 type PromptInputProps = {
   isLoading?: boolean;
@@ -57,6 +55,9 @@ export function PromptInput({
 
   const availableModels = getAvailableModelsWithCategories();
   const selectedModel = getModelConfig(model);
+
+  const openSettingsModal = useSettingsModalStore((state) => state.open);
+  const getKey = useConfigStore((state) => state.getKey);
 
   return (
     <PromptInputUi
@@ -113,10 +114,9 @@ export function PromptInput({
                     <SelectGroup key={category}>
                       <SelectLabel>{category}</SelectLabel>
                       {models.map((availableModel) => {
+                        const mdlConfig = getModelConfig(availableModel.model);
                         const Icon = arrayIcons.find(
-                          (icon) =>
-                            icon.key ===
-                            getModelConfig(availableModel.model).icon
+                          (icon) => icon.key === mdlConfig.icon
                         )?.Icon;
 
                         return (
@@ -124,6 +124,10 @@ export function PromptInput({
                             key={availableModel.model}
                             value={availableModel.model}
                             className="cursor-pointer"
+                            disabled={
+                              mdlConfig.availableWhen === "byok" &&
+                              !getKey(mdlConfig.provider)
+                            }
                           >
                             {Icon && <Icon className="mr-2 h-4 w-4" />}
                             {availableModel.model}
@@ -150,11 +154,12 @@ export function PromptInput({
               </PromptInputAction>
             )}
 
-            <PromptInputAction tooltip="More actions">
+            <PromptInputAction tooltip="Open settings">
               <Button
                 variant="outline"
                 size="icon"
-                className="size-8 rounded-full"
+                className="size-8 rounded-full cursor-pointer"
+                onClick={openSettingsModal}
               >
                 <Settings size={18} />
               </Button>

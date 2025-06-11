@@ -10,15 +10,25 @@ export async function POST(req: Request) {
     messages,
     search,
     model,
-  }: { messages: UIMessage[]; search: boolean; model: ModelId } =
-    await req.json();
+    apiKey,
+  }: {
+    messages: UIMessage[];
+    search: boolean;
+    model: ModelId;
+    apiKey?: string;
+  } = await req.json();
 
   console.log("Received messages:", messages, "Search enabled:", search);
 
   let tools;
 
   try {
-    const mdlConfig = getModel(model);
+    const mdlConfig = getModel(model, apiKey);
+
+    if (!mdlConfig) {
+      console.error("Model configuration not found for model:", model);
+      return new Response("Model not found", { status: 404 });
+    }
 
     if (search && mdlConfig.supportsWebSearch) {
       tools = {

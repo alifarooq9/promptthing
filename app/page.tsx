@@ -19,6 +19,8 @@ import {
   ReasoningTrigger,
 } from "@/components/ui/reasoning";
 import { ModelId } from "@/config/models";
+import { useConfigStore } from "@/store/use-config";
+import { getModelConfig } from "@/lib/models";
 
 type UseChatBody = {
   search: boolean;
@@ -27,15 +29,23 @@ type UseChatBody = {
 
 export default function Home() {
   const [searchEnabled, setSearchEnabled] = React.useState(false);
-  const [model, setModel] = React.useState<ModelId>("gemini-2.0-flash");
+  const [model, setModel] = React.useState<ModelId>("gemini-2.0-flash-lite");
+
+  const apiKey = useConfigStore((state) =>
+    state.getKey(getModelConfig(model).provider)
+  );
 
   const { messages, append, status, setMessages, error } = useChat({
     api: "/api/v1/chat",
     body: {
       search: searchEnabled,
       model,
+      apiKey,
     } as UseChatBody,
   });
+
+  const keys = useConfigStore((state) => state.keys);
+  console.log("Keys in store:", keys);
 
   return (
     <div className="flex-1 w-full relative">

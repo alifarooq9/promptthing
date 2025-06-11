@@ -15,9 +15,27 @@ const isProviderSupported = (provider: Provider): boolean => {
   return supportedProviders.includes(provider);
 };
 
-const createModel = (config: ModelConfig) => {
-  const apiKey = process.env[config.apiKeyEnv];
+const createModel = (config: ModelConfig, providedApiKey?: string) => {
+  // Determine which API key to use based on availableWhen and providedApiKey
+  let apiKey: string;
+
+  if (providedApiKey) {
+    // If a key is provided in the request, always use it
+    apiKey = providedApiKey;
+  } else if (config.availableWhen === "always" && config.apiKeyEnv) {
+    // For "always" models, use environment variable
+    apiKey = process.env[config.apiKeyEnv] || "";
+  } else {
+    // For "byok" models without provided key, this should fail
+    apiKey = "";
+  }
+
   if (!apiKey || apiKey === "") {
+    if (config.availableWhen === "byok" && !providedApiKey) {
+      throw new Error(
+        `API key required for ${config.model}. This model requires bring-your-own-key.`
+      );
+    }
     throw new Error(`${config.apiKeyEnv} is not set`);
   }
 
@@ -31,6 +49,7 @@ const createModel = (config: ModelConfig) => {
   switch (config.provider) {
     case "google": {
       const google = createGoogleGenerativeAI({ apiKey });
+      console.log(`Using Google model: ${config.modelName}`);
       return google(config.modelName);
     }
     case "openrouter": {
@@ -46,7 +65,7 @@ const createModel = (config: ModelConfig) => {
   }
 };
 
-export const getModel = (model?: Models) => {
+export const getModel = (model?: Models, apiKey?: string) => {
   const selectedModel = model || modelsIds["gemini-2.0-flash"];
 
   const config = modelsConfig[selectedModel];
@@ -56,7 +75,7 @@ export const getModel = (model?: Models) => {
   }
 
   return {
-    model: createModel(config),
+    model: createModel(config, apiKey),
     canReason: config.canReason,
     supportsWebSearch: config.supportsWebSearch,
   };
@@ -84,6 +103,16 @@ export const getAvailableModelsWithCategories = () => {
       icon: modelConfig.icon,
     };
   });
+};
+
+export const getAvailableProviders = (): Provider[] => {
+  const providers = new Set<Provider>();
+
+  Object.values(modelsConfig).forEach((config) => {
+    providers.add(config.provider);
+  });
+
+  return Array.from(providers);
 };
 
 export const getModelConfig = (model: Models) => {
