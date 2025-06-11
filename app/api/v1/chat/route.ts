@@ -39,9 +39,7 @@ export async function POST(req: Request) {
       `,
       messages,
       maxTokens: 2048,
-      experimental_transform: [
-        smoothStream({ chunking: "line", delayInMs: 20 }),
-      ],
+      experimental_transform: [smoothStream({ chunking: "word" })],
       tools: tools,
       maxSteps: 2,
       providerOptions: {

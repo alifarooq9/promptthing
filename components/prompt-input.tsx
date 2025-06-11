@@ -15,10 +15,16 @@ import {
   Select,
   SelectContent,
   SelectItem,
-  SelectValue,
+  SelectGroup,
+  SelectLabel,
   SelectTrigger,
 } from "@/components/ui/select";
-import { getAvailableModels, getModelConfig } from "@/lib/models";
+import {
+  getAvailableModels,
+  getAvailableModelsWithCategories,
+  getModelConfig,
+} from "@/lib/models";
+import { arrayIcons } from "@/components/ui/icons";
 
 type PromptInputProps = {
   isLoading?: boolean;
@@ -49,7 +55,7 @@ export function PromptInput({
     setPrompt("");
   }, [prompt, onSubmit]);
 
-  const availableModels = getAvailableModels();
+  const availableModels = getAvailableModelsWithCategories();
   const selectedModel = getModelConfig(model);
 
   return (
@@ -83,17 +89,48 @@ export function PromptInput({
                     "rounded-full cursor-pointer max-w-36 justify-start"
                   )}
                 >
-                  <SelectValue placeholder="Select model" />
+                  {(() => {
+                    const Icon = arrayIcons.find(
+                      (icon) => icon.key === selectedModel.icon
+                    )?.Icon;
+                    return Icon ? <Icon /> : null;
+                  })()}
                 </SelectTrigger>
                 <SelectContent>
-                  {availableModels.map((availableModel) => (
-                    <SelectItem
-                      key={availableModel}
-                      value={availableModel}
-                      className="cursor-pointer"
-                    >
-                      {availableModel}
-                    </SelectItem>
+                  {Object.entries(
+                    availableModels.reduce(
+                      (groups, availableModel) => {
+                        const category = availableModel.category || "Other";
+                        if (!groups[category]) {
+                          groups[category] = [];
+                        }
+                        groups[category].push(availableModel);
+                        return groups;
+                      },
+                      {} as Record<string, typeof availableModels>
+                    )
+                  ).map(([category, models]) => (
+                    <SelectGroup key={category}>
+                      <SelectLabel>{category}</SelectLabel>
+                      {models.map((availableModel) => {
+                        const Icon = arrayIcons.find(
+                          (icon) =>
+                            icon.key ===
+                            getModelConfig(availableModel.model).icon
+                        )?.Icon;
+
+                        return (
+                          <SelectItem
+                            key={availableModel.model}
+                            value={availableModel.model}
+                            className="cursor-pointer"
+                          >
+                            {Icon && <Icon className="mr-2 h-4 w-4" />}
+                            {availableModel.model}
+                          </SelectItem>
+                        );
+                      })}
+                    </SelectGroup>
                   ))}
                 </SelectContent>
               </Select>

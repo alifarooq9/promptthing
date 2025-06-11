@@ -27,7 +27,7 @@ type UseChatBody = {
 
 export default function Home() {
   const [searchEnabled, setSearchEnabled] = React.useState(false);
-  const [model, setModel] = React.useState<ModelId>("gemini-2.5-flash");
+  const [model, setModel] = React.useState<ModelId>("gemini-2.0-flash");
 
   const { messages, append, status, setMessages, error } = useChat({
     api: "/api/v1/chat",

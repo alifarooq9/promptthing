@@ -1,6 +1,8 @@
+import { Icons } from "@/components/ui/icons";
+
 export const modelsIds = {
-  "gemini-2.5-flash-thinking": "gemini-2.5-flash-thinking",
-  "gemini-2.5-flash": "gemini-2.5-flash",
+  "gemini-2.0-flash-thinking": "gemini-2.0-flash-thinking",
+  "gemini-2.0-flash": "gemini-2.0-flash",
   "deepseek-r1": "deepseek-r1",
 } as const;
 
@@ -15,6 +17,7 @@ export interface ModelConfig {
   canReason: boolean;
   apiKeyEnv: string;
   supportsWebSearch: boolean;
+  icon: keyof typeof Icons;
 }
 
 type ModelsConfig = {
@@ -22,21 +25,23 @@ type ModelsConfig = {
 };
 
 export const modelsConfig: ModelsConfig = {
-  [modelsIds["gemini-2.5-flash-thinking"]]: {
-    model: modelsIds["gemini-2.5-flash-thinking"],
+  [modelsIds["gemini-2.0-flash-thinking"]]: {
+    model: modelsIds["gemini-2.0-flash-thinking"],
     provider: "google" as const,
     modelName: "gemini-2.0-flash-thinking-exp-01-21",
     canReason: true,
     apiKeyEnv: "GOOGLE_API_KEY",
     supportsWebSearch: true,
+    icon: "google",
   },
-  [modelsIds["gemini-2.5-flash"]]: {
-    model: modelsIds["gemini-2.5-flash"],
+  [modelsIds["gemini-2.0-flash"]]: {
+    model: modelsIds["gemini-2.0-flash"],
     provider: "google" as const,
-    modelName: "gemini-2.0-flash-exp",
+    modelName: "gemini-2.0-flash",
     canReason: false,
     apiKeyEnv: "GOOGLE_API_KEY",
     supportsWebSearch: true,
+    icon: "google",
   },
   [modelsIds["deepseek-r1"]]: {
     model: modelsIds["deepseek-r1"],
@@ -45,5 +50,6 @@ export const modelsConfig: ModelsConfig = {
     canReason: true,
     apiKeyEnv: "OPENROUTER_API_KEY",
     supportsWebSearch: false,
+    icon: "deepseek",
   },
 } as const;

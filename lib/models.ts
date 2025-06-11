@@ -47,7 +47,7 @@ const createModel = (config: ModelConfig) => {
 };
 
 export const getModel = (model?: Models) => {
-  const selectedModel = model || modelsIds["gemini-2.5-flash"];
+  const selectedModel = model || modelsIds["gemini-2.0-flash"];
 
   const config = modelsConfig[selectedModel];
 
@@ -64,6 +64,26 @@ export const getModel = (model?: Models) => {
 
 export const getAvailableModels = () => {
   return Object.keys(modelsConfig) as Models[];
+};
+
+export const getAvailableModelsWithCategories = () => {
+  const models = getAvailableModels();
+  return models.map((model) => {
+    const modelConfig = modelsConfig[model];
+    if (modelConfig.canReason) {
+      return {
+        model,
+        category: "Reasoning",
+        icon: modelConfig.icon,
+      };
+    }
+
+    return {
+      model,
+      category: "General",
+      icon: modelConfig.icon,
+    };
+  });
 };
 
 export const getModelConfig = (model: Models) => {
