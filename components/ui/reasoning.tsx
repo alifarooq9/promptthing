@@ -43,7 +43,7 @@ function Reasoning({
   open,
   onOpenChange,
 }: ReasoningProps) {
-  const [internalOpen, setInternalOpen] = useState(true);
+  const [internalOpen, setInternalOpen] = useState(false);
   const isControlled = open !== undefined;
   const isOpen = isControlled ? open : internalOpen;
 
