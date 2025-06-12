@@ -26,7 +26,7 @@ import { useConfigStore } from "@/store/use-config";
 
 type PromptInputProps = {
   isLoading?: boolean;
-  onSubmit: (prompt: string) => void;
+  onSubmit: (prompt: string) => void | Promise<void>;
   searchEnabled: boolean;
   setSearchEnabled: React.Dispatch<React.SetStateAction<boolean>>;
   model: ModelId;
@@ -47,9 +47,7 @@ export function PromptInput({
     if (!prompt.trim()) {
       return;
     }
-
     onSubmit(prompt);
-
     setPrompt("");
   }, [prompt, onSubmit]);
 
