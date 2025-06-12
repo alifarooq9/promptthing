@@ -3,6 +3,7 @@
 import { CopyButton } from "@/components/copy-button";
 import { Button } from "@/components/ui/button";
 import { MessageAction, MessageActions } from "@/components/ui/message";
+import { Id } from "@/convex/_generated/dataModel";
 import { ChatRequestOptions, CreateMessage, Message, UIMessage } from "ai";
 import { RefreshCcwIcon } from "lucide-react";
 
@@ -16,6 +17,7 @@ type AssistantMessageActionsProps = {
     message: Message | CreateMessage,
     chatRequestOptions?: ChatRequestOptions
   ) => Promise<string | null | undefined>;
+  chatId: Id<"chat">;
 };
 
 export function AssistantMessageActions({
@@ -23,6 +25,7 @@ export function AssistantMessageActions({
   messages,
   setMessages,
   append,
+  chatId,
 }: AssistantMessageActionsProps) {
   const handleRegenerate = () => {
     const currentMessageIndex = messages.findIndex(
@@ -33,10 +36,17 @@ export function AssistantMessageActions({
     const userMessage = messages[currentMessageIndex - 1];
     const truncatedMessages = messages.slice(0, currentMessageIndex - 1);
     setMessages(truncatedMessages);
-    append({
-      role: "user",
-      content: userMessage.content,
-    });
+    append(
+      {
+        role: "user",
+        content: userMessage.content,
+      },
+      {
+        body: {
+          chatId,
+        },
+      }
+    );
   };
 
   return (

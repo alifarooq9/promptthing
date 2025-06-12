@@ -118,6 +118,7 @@ export function Chat({ chatId, initialMessages }: ChatProps) {
                         messages={messages}
                         setMessages={setMessages}
                         append={append}
+                        chatId={id as Id<"chat">}
                       />
                     )}
                   </div>
