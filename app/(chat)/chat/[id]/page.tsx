@@ -18,9 +18,15 @@ export default async function ChatId({ params }: ChatIdProps) {
 
   const { id } = await params;
 
-  const messages = await fetchQuery(api.message.getMessages, {
-    chatId: id as Id<"chat">,
-  });
+  const messages = await fetchQuery(
+    api.message.getMessages,
+    {
+      chatId: id as Id<"chat">,
+    },
+    {
+      token: user,
+    }
+  );
 
   const initialMessages = messages.map(
     (message) =>

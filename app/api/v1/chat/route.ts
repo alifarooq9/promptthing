@@ -12,6 +12,7 @@ import { ModelId } from "@/config/models";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
+import { convexAuthNextjsToken } from "@convex-dev/auth/nextjs/server";
 
 const client = new ConvexHttpClient(
   process.env.NEXT_PUBLIC_CONVEX_URL as string
@@ -34,9 +35,13 @@ export async function POST(req: Request) {
     message: UIMessage;
   } = await req.json();
 
-  console.log(message, "Chat ID received in POST request");
+  const token = await convexAuthNextjsToken();
+  if (!token) {
+    console.error("No authentication token found");
+    return new Response("Unauthorized", { status: 401 });
+  }
 
-  console.log("Received messages:", messages, "Search enabled:", search);
+  client.setAuth(token);
 
   let tools;
 
@@ -110,6 +115,7 @@ export async function POST(req: Request) {
             role: "assistant",
             parts: JSON.stringify(assistantMessage.parts || []),
           });
+          console.log("token", token);
         } catch (error) {
           console.error("Error saving message:", error);
           throw new Error(

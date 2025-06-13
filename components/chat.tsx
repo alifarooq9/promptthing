@@ -164,7 +164,7 @@ export function Chat({ chatId, initialMessages }: ChatProps) {
                 generatedId = newChatId as Id<"chat">;
                 setId(newChatId);
                 // Update URL without triggering route change or component re-render
-                window.history.replaceState(null, "", `/${newChatId}`);
+                window.history.replaceState(null, "", `/chat/${newChatId}`);
               } catch (error) {
                 console.error("Failed to create new chat:", error);
               }
