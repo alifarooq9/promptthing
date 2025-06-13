@@ -21,7 +21,7 @@ import {
 import Link from "next/link";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { Doc, Id } from "@/convex/_generated/dataModel";
+import { Doc } from "@/convex/_generated/dataModel";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
@@ -169,6 +169,7 @@ function ChatItem({ chat }: ChatItemProps) {
       }
     } catch (error) {
       toast.error("Failed to delete chat. Please try again.");
+      console.error("Error deleting chat:", error);
     } finally {
       setLoading(false);
     }
@@ -186,12 +187,13 @@ function ChatItem({ chat }: ChatItemProps) {
       toast.success("Chat renamed successfully!");
     } catch (error) {
       toast.error("Failed to rename chat. Please try again.");
+      console.error("Error renaming chat:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  async function onSubmit(values: z.infer<typeof renameFormSchema>) {
+  async function onSubmit() {
     await handleRenameChat();
   }
   return (
@@ -261,6 +263,7 @@ function ChatItem({ chat }: ChatItemProps) {
                   setDeleteDialogOpen(false);
                 } catch (error) {
                   toast.error("Failed to delete chat. Please try again.");
+                  console.error("Error deleting chat:", error);
                 }
               }}
             >
