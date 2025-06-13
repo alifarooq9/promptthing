@@ -1,8 +1,10 @@
 import { Chat } from "@/components/chat";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
+import { convexAuthNextjsToken } from "@convex-dev/auth/nextjs/server";
 import { UIMessage } from "ai";
 import { fetchQuery } from "convex/nextjs";
+import { redirect } from "next/navigation";
 
 type ChatIdProps = {
   params: Promise<{
@@ -11,6 +13,9 @@ type ChatIdProps = {
 };
 
 export default async function ChatId({ params }: ChatIdProps) {
+  const user = await convexAuthNextjsToken();
+  if (!user) redirect("/signin");
+
   const { id } = await params;
 
   const messages = await fetchQuery(api.message.getMessages, {

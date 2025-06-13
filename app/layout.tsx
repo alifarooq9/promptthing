@@ -4,9 +4,6 @@ import "./globals.css";
 import { Providers } from "@/components/providers/providers";
 import { SettingsModal } from "@/components/settings/settings-modal";
 import { Toaster } from "@/components/ui/sonner";
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/app-sidebar/app-sidebar";
-import { AppHeader } from "@/components/app-header";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -34,13 +31,7 @@ export default async function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} dark antialiased font-sans`}
       >
         <Providers>
-          <SidebarProvider>
-            <AppSidebar />
-            <SidebarInset>
-              <AppHeader />
-              {children}
-            </SidebarInset>
-          </SidebarProvider>
+          {children}
           <Toaster position="top-right" />
           <SettingsModal />
         </Providers>

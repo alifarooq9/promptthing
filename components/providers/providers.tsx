@@ -1,11 +1,14 @@
-"use client";
-
-import { ConvexClientProvider } from "@/components/providers/convex-client-provider";
+import { ConvexAuthClientProvider } from "@/components/providers/convex-auth-client-provider";
+import { ConvexAuthServerProvider } from "@/components/providers/convex-auth-server-provider";
 
 export function Providers({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return <ConvexClientProvider>{children}</ConvexClientProvider>;
+  return (
+    <ConvexAuthServerProvider>
+      <ConvexAuthClientProvider>{children}</ConvexAuthClientProvider>
+    </ConvexAuthServerProvider>
+  );
 }

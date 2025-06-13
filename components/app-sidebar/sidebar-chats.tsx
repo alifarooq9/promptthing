@@ -207,7 +207,7 @@ function ChatItem({ chat }: ChatItemProps) {
               "bg-sidebar-accent text-sidebar-accent-foreground"
           )}
         >
-          <Link href={`/${chat._id}`}>
+          <Link href={`/chat/${chat._id}`}>
             <span className="truncate">{chat.title}</span>
           </Link>
         </SidebarMenuButton>
