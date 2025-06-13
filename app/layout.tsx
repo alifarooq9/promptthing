@@ -6,6 +6,7 @@ import { SettingsModal } from "@/components/settings/settings-modal";
 import { Toaster } from "@/components/ui/sonner";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar/app-sidebar";
+import { AppHeader } from "@/components/app-header";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -35,7 +36,10 @@ export default async function RootLayout({
         <Providers>
           <SidebarProvider>
             <AppSidebar />
-            <SidebarInset>{children}</SidebarInset>
+            <SidebarInset>
+              <AppHeader />
+              {children}
+            </SidebarInset>
           </SidebarProvider>
           <Toaster position="top-right" />
           <SettingsModal />

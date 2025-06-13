@@ -64,7 +64,7 @@ export function Chat({ chatId, initialMessages }: ChatProps) {
   return (
     <div className="flex-1 w-full relative">
       <ChatContainerRoot className="w-full h-svh flex flex-col">
-        <ChatContainerContent className="p-4 relative space-y-14 pt-16 pb-38 w-full max-w-3xl mx-auto">
+        <ChatContainerContent className="p-4 relative space-y-14 pt-24 pb-38 w-full max-w-3xl mx-auto">
           {messages.map((message, index) => {
             const isAssistant = message.role === "assistant";
 

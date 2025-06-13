@@ -10,6 +10,7 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarRail,
+  SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { SearchIcon, SettingsIcon, SquarePenIcon } from "lucide-react";
 
@@ -35,11 +36,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar className="border-r-0" {...props}>
       <SidebarHeader>
-        <SidebarMenu>
+        <SidebarMenu className="flex flex-row justify-between items-center gap-2">
           <SidebarMenuItem>
-            <p className="flex flex-col justify-center items p-2 font-bold">
+            <p className="flex flex-col w-fit justify-center items p-2 font-bold">
               Promptthing
             </p>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarTrigger className="cursor-pointer" />
           </SidebarMenuItem>
         </SidebarMenu>
         <NavMain items={navMain} />

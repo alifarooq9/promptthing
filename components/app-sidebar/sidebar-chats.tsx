@@ -57,6 +57,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
 const renameFormSchema = z.object({
   title: z.string().min(1, "Title is required").max(100, "Title is too long"),
@@ -199,7 +200,13 @@ function ChatItem({ chat }: ChatItemProps) {
   return (
     <>
       <SidebarMenuItem key={chat._id}>
-        <SidebarMenuButton asChild>
+        <SidebarMenuButton
+          asChild
+          className={cn(
+            params.id === chat._id &&
+              "bg-sidebar-accent text-sidebar-accent-foreground"
+          )}
+        >
           <Link href={`/${chat._id}`}>
             <span className="truncate">{chat.title}</span>
           </Link>
