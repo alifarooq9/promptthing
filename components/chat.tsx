@@ -159,7 +159,7 @@ export function Chat({ chatId, initialMessages }: ChatProps) {
               try {
                 console.log("Creating new chat with title 'New Chat'");
                 const newChatId = await handleCreateNewChat({
-                  title: "New Chat",
+                  title: prompt.slice(0, 50) || "New Chat",
                 });
                 generatedId = newChatId as Id<"chat">;
                 setId(newChatId);

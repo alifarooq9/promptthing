@@ -37,8 +37,7 @@ export default async function RootLayout({
             <AppSidebar />
             <SidebarInset>{children}</SidebarInset>
           </SidebarProvider>
-
-          <Toaster />
+          <Toaster position="top-right" />
           <SettingsModal />
         </Providers>
       </body>
