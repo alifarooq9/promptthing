@@ -6,29 +6,35 @@ import { Chats } from "@/components/app-sidebar/sidebar-chats";
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuItem,
   SidebarRail,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { SearchIcon, SettingsIcon, SquarePenIcon } from "lucide-react";
+import {
+  IconSearch,
+  IconSettings,
+  IconSquareRoundedPlus,
+} from "@tabler/icons-react";
+import { NavUser } from "@/components/app-sidebar/nav-user";
 
 const navMain = [
   {
     title: "New Chat",
     url: "/",
-    icon: SquarePenIcon,
+    icon: IconSquareRoundedPlus,
   },
   {
     title: "Search",
     url: "#",
-    icon: SearchIcon,
+    icon: IconSearch,
   },
   {
     title: "Settings",
     url: "#",
-    icon: SettingsIcon,
+    icon: IconSettings,
   },
 ];
 
@@ -51,6 +57,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarContent>
         <Chats />
       </SidebarContent>
+      <SidebarFooter>
+        <NavUser />
+      </SidebarFooter>
       <SidebarRail />
     </Sidebar>
   );

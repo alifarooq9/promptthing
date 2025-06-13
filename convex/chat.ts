@@ -9,12 +9,12 @@ export const createChat = mutation({
     const userId = await getAuthUserId(ctx);
 
     if (!userId) {
-      throw new Error("User not authenticated");
+      return { success: false, message: "User not authenticated" };
     }
 
     const user = await ctx.db.get(userId as Id<"users">);
     if (!user) {
-      throw new Error("User not found");
+      return { success: false, message: "User not found" };
     }
 
     const chatId = await ctx.db.insert("chat", {
@@ -22,7 +22,11 @@ export const createChat = mutation({
       userId: user._id,
     });
 
-    return chatId;
+    return {
+      success: true,
+      data: chatId,
+      message: "Chat created successfully",
+    };
   },
 });
 
@@ -30,19 +34,23 @@ export const getChats = query({
   handler: async (ctx) => {
     const userId = await getAuthUserId(ctx);
     if (!userId) {
-      throw new Error("User not authenticated");
+      return { success: false, message: "User not authenticated" };
     }
 
     const user = await ctx.db.get(userId as Id<"users">);
     if (!user) {
-      throw new Error("User not found");
+      return { success: false, message: "User not found" };
     }
 
     const chats = await ctx.db
       .query("chat")
       .withIndex("userId", (q) => q.eq("userId", user._id))
       .collect();
-    return chats.reverse();
+    return {
+      success: true,
+      data: chats.reverse(),
+      message: "Chats retrieved successfully",
+    };
   },
 });
 
@@ -51,21 +59,28 @@ export const renameChat = mutation({
   handler: async (ctx, { chatId, title }) => {
     const userId = await getAuthUserId(ctx);
     if (!userId) {
-      throw new Error("User not authenticated");
+      return { success: false, message: "User not authenticated" };
     }
     const user = await ctx.db.get(userId as Id<"users">);
     if (!user) {
-      throw new Error("User not found");
+      return { success: false, message: "User not found" };
     }
     const chat = await ctx.db.get(chatId);
     if (!chat) {
-      throw new Error("Chat not found");
+      return { success: false, message: "Chat not found" };
     }
     if (chat.userId !== user._id) {
-      throw new Error("User does not have permission to rename this chat");
+      return {
+        success: false,
+        message: "User does not have permission to rename this chat",
+      };
     }
     await ctx.db.patch(chatId, { title });
-    return chatId;
+    return {
+      success: true,
+      data: chatId,
+      message: "Chat renamed successfully",
+    };
   },
 });
 
@@ -74,21 +89,24 @@ export const deleteChatAndMessages = mutation({
   handler: async (ctx, { chatId }) => {
     const userId = await getAuthUserId(ctx);
     if (!userId) {
-      throw new Error("User not authenticated");
+      return { success: false, message: "User not authenticated" };
     }
     const user = await ctx.db.get(userId as Id<"users">);
     if (!user) {
-      throw new Error("User not found");
+      return { success: false, message: "User not found" };
     }
     const chat = await ctx.db.get(chatId);
     if (!chat) {
-      throw new Error("Chat not found");
+      return { success: false, message: "Chat not found" };
     }
     if (chat.userId !== user._id) {
-      throw new Error("User does not have permission to delete this chat");
+      return {
+        success: false,
+        message: "User does not have permission to delete this chat",
+      };
     }
     await ctx.db.delete(chatId);
 
-    return true;
+    return { success: true, data: true, message: "Chat deleted successfully" };
   },
 });

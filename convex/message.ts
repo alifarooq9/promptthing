@@ -16,14 +16,20 @@ export const createMessage = mutation({
     const userId = await getAuthUserId(ctx);
     console.log("userId", userId);
 
+    if (!userId) {
+      return { success: false, message: "User not authenticated" };
+    }
+
     const chat = await ctx.db.get(chatId);
     if (!chat) {
-      throw new Error("Chat not found");
+      return { success: false, message: "Chat not found" };
     }
     if (chat.userId !== userId) {
-      throw new Error(
-        "User does not have permission to create a message in this chat"
-      );
+      return {
+        success: false,
+        message:
+          "User does not have permission to create a message in this chat",
+      };
     }
     const messageId = await ctx.db.insert("message", {
       content,
@@ -34,7 +40,11 @@ export const createMessage = mutation({
       userId,
     });
 
-    return messageId;
+    return {
+      success: true,
+      data: messageId,
+      message: "Message created successfully",
+    };
   },
 });
 
@@ -43,24 +53,34 @@ export const getMessages = query({
   handler: async (ctx, { chatId }) => {
     const userId = await getAuthUserId(ctx);
 
+    if (!userId) {
+      return { success: false, message: "User not authenticated" };
+    }
+
     const user = await ctx.db.get(userId as Id<"users">);
     if (!user) {
-      throw new Error("User not found");
+      return { success: false, message: "User not found" };
     }
     const chat = await ctx.db.get(chatId);
     if (!chat) {
-      throw new Error("Chat not found");
+      return { success: false, message: "Chat not found" };
     }
     if (chat.userId !== user._id) {
-      throw new Error(
-        "User does not have permission to access messages in this chat"
-      );
+      return {
+        success: false,
+        message:
+          "User does not have permission to access messages in this chat",
+      };
     }
     const messages = await ctx.db
       .query("message")
       .withIndex("by_chatId", (q) => q.eq("chatId", chatId))
       .collect();
 
-    return messages;
+    return {
+      success: true,
+      data: messages,
+      message: "Messages retrieved successfully",
+    };
   },
 });

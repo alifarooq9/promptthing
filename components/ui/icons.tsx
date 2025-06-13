@@ -1,11 +1,11 @@
 import { cn } from "@/lib/utils";
-import { LoaderIcon } from "lucide-react";
+import { IconLoader } from "@tabler/icons-react";
 
 export type IconProps = React.HTMLAttributes<SVGElement>;
 
 export const Icons = {
   loader: (props: IconProps) => (
-    <LoaderIcon className={cn("animate-spin", props.className)} {...props} />
+    <IconLoader className={cn("animate-spin", props.className)} {...props} />
   ),
   google: (props: IconProps) => (
     <svg

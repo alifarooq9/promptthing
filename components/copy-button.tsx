@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { AnimatePresence, HTMLMotionProps, motion } from "motion/react";
-import { CheckIcon, CopyIcon } from "lucide-react";
+import { IconCheck, IconCopy } from "@tabler/icons-react";
 import { type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
@@ -29,7 +29,7 @@ function CopyButton({
   ...props
 }: CopyButtonProps) {
   const [localIsCopied, setLocalIsCopied] = React.useState(isCopied ?? false);
-  const Icon = localIsCopied ? CheckIcon : CopyIcon;
+  const Icon = localIsCopied ? IconCheck : IconCopy;
 
   React.useEffect(() => {
     setLocalIsCopied(isCopied ?? false);

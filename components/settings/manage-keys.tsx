@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/tooltip";
 import { useConfigStore } from "@/store/use-config";
 import { Provider } from "@/config/models";
-import { EyeIcon, EyeOffIcon } from "lucide-react";
+import { IconEye, IconEyeOff } from "@tabler/icons-react";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 
@@ -172,7 +172,7 @@ function KeyInput({
           className="absolute top-1/2 right-0.5 h-8 w-8 -translate-y-1/2 cursor-pointer"
           onClick={() => setShow(!show)}
         >
-          {show ? <EyeOffIcon /> : <EyeIcon />}
+          {show ? <IconEyeOff /> : <IconEye />}
         </Button>
       </div>
     </div>

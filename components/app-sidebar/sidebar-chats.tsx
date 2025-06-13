@@ -1,6 +1,6 @@
 "use client";
 
-import { FolderPenIcon, MoreHorizontalIcon, Trash2Icon } from "lucide-react";
+import { IconEdit, IconDots, IconTrash } from "@tabler/icons-react";
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -58,19 +58,20 @@ import {
 } from "@/components/ui/form";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const renameFormSchema = z.object({
   title: z.string().min(1, "Title is required").max(100, "Title is too long"),
 });
 
 export function Chats() {
-  const chats = useQuery(api.chat.getChats);
+  const chatsQuery = useQuery(api.chat.getChats)!;
 
   const groupedChats = React.useMemo(() => {
-    if (!chats || chats.length === 0) return [];
+    if (!chatsQuery || chatsQuery.data?.length === 0) return [];
 
     const groups: { date: string; chats: Doc<"chat">[] }[] = [];
-    chats.forEach((chat) => {
+    chatsQuery.data?.forEach((chat) => {
       let date = format(chat._creationTime, "PPP");
       //if today or yesterday, use "Today" or "Yesterday"
       const today = new Date();
@@ -97,13 +98,28 @@ export function Chats() {
     return groups.sort(
       (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
     );
-  }, [chats]);
+  }, [chatsQuery]);
 
-  if (!chats) {
+  if (!chatsQuery) {
+    return (
+      <SidebarGroup>
+        <SidebarGroupLabel>Recent</SidebarGroupLabel>
+        <SidebarGroupContent>
+          <SidebarMenu>
+            <Skeleton className="h-8 w-full rounded-md bg-sidebar-accent" />
+            <Skeleton className="h-8 w-full rounded-md bg-sidebar-accent" />
+            <Skeleton className="h-8 w-full rounded-md bg-sidebar-accent" />
+          </SidebarMenu>
+        </SidebarGroupContent>
+      </SidebarGroup>
+    );
+  }
+
+  if (!chatsQuery?.data) {
     return null;
   }
 
-  if (chats.length === 0) {
+  if (chatsQuery.data.length === 0) {
     return (
       <SidebarGroup>
         <SidebarGroupLabel>Recent</SidebarGroupLabel>
@@ -215,7 +231,7 @@ function ChatItem({ chat }: ChatItemProps) {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <SidebarMenuAction showOnHover>
-              <MoreHorizontalIcon />
+              <IconDots />
               <span className="sr-only">More</span>
             </SidebarMenuAction>
           </DropdownMenuTrigger>
@@ -232,7 +248,7 @@ function ChatItem({ chat }: ChatItemProps) {
                 setRenameDialogOpen(true);
               }}
             >
-              <FolderPenIcon className="text-muted-foreground" />
+              <IconEdit className="text-muted-foreground" />
               <span>Rename</span>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
@@ -241,7 +257,7 @@ function ChatItem({ chat }: ChatItemProps) {
               variant="destructive"
               onClick={() => setDeleteDialogOpen(true)}
             >
-              <Trash2Icon className="text-muted-foreground" />
+              <IconTrash className="text-muted-foreground" />
               <span>Delete</span>
             </DropdownMenuItem>
           </DropdownMenuContent>

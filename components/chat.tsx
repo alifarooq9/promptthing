@@ -158,13 +158,15 @@ export function Chat({ chatId, initialMessages }: ChatProps) {
             if (isNewChat && messages.length === 0 && !chatId && !id) {
               try {
                 console.log("Creating new chat with title 'New Chat'");
-                const newChatId = await handleCreateNewChat({
+                const { success, data: newChatId } = await handleCreateNewChat({
                   title: prompt.slice(0, 50) || "New Chat",
                 });
-                generatedId = newChatId as Id<"chat">;
-                setId(newChatId);
-                // Update URL without triggering route change or component re-render
-                window.history.replaceState(null, "", `/chat/${newChatId}`);
+                if (success) {
+                  generatedId = newChatId as Id<"chat">;
+                  setId(newChatId);
+                  // Update URL without triggering route change or component re-render
+                  window.history.replaceState(null, "", `/chat/${newChatId}`);
+                }
               } catch (error) {
                 console.error("Failed to create new chat:", error);
               }

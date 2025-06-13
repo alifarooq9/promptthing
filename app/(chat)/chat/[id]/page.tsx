@@ -18,7 +18,7 @@ export default async function ChatId({ params }: ChatIdProps) {
 
   const { id } = await params;
 
-  const messages = await fetchQuery(
+  const { success, data: messages } = await fetchQuery(
     api.message.getMessages,
     {
       chatId: id as Id<"chat">,
@@ -27,6 +27,14 @@ export default async function ChatId({ params }: ChatIdProps) {
       token: user,
     }
   );
+
+  if (!success) {
+    redirect("/chats");
+  }
+
+  if (!messages || messages.length === 0) {
+    redirect("/chats");
+  }
 
   const initialMessages = messages.map(
     (message) =>

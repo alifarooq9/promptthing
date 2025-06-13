@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { MessageAction, MessageActions } from "@/components/ui/message";
 import { Id } from "@/convex/_generated/dataModel";
 import { ChatRequestOptions, CreateMessage, Message, UIMessage } from "ai";
-import { RefreshCcwIcon } from "lucide-react";
+import { IconReload } from "@tabler/icons-react";
 
 type AssistantMessageActionsProps = {
   message: UIMessage;
@@ -61,7 +61,7 @@ export function AssistantMessageActions({
           size="icon"
           className="h-8 w-8 cursor-pointer"
         >
-          <RefreshCcwIcon />
+          <IconReload />
         </Button>
       </MessageAction>
     </MessageActions>

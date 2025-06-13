@@ -7,7 +7,12 @@ import {
   PromptInputTextarea,
 } from "@/components/ui/prompt-input";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { ArrowUp, Settings, Globe, Mic } from "lucide-react";
+import {
+  IconArrowUp,
+  IconSettings,
+  IconWorld,
+  IconMicrophone,
+} from "@tabler/icons-react";
 import React from "react";
 import { cn } from "@/lib/utils";
 import { ModelId } from "@/config/models";
@@ -146,7 +151,7 @@ export function PromptInput({
                   className={cn("rounded-full cursor-pointer")}
                   onClick={() => setSearchEnabled(!searchEnabled)}
                 >
-                  <Globe size={18} />
+                  <IconWorld size={18} />
                   Search
                 </Button>
               </PromptInputAction>
@@ -159,7 +164,7 @@ export function PromptInput({
                 className="size-8 rounded-full cursor-pointer"
                 onClick={openSettingsModal}
               >
-                <Settings size={18} />
+                <IconSettings size={18} />
               </Button>
             </PromptInputAction>
           </div>
@@ -170,7 +175,7 @@ export function PromptInput({
                 size="icon"
                 className="size-9 rounded-full"
               >
-                <Mic size={18} />
+                <IconMicrophone size={18} />
               </Button>
             </PromptInputAction>
 
@@ -181,7 +186,7 @@ export function PromptInput({
               className="size-9 rounded-full"
             >
               {!isLoading ? (
-                <ArrowUp size={18} />
+                <IconArrowUp size={18} />
               ) : (
                 <span className="size-3 rounded-xs" />
               )}

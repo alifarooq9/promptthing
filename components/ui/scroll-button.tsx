@@ -3,7 +3,7 @@
 import { Button, buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { type VariantProps } from "class-variance-authority";
-import { ChevronDown } from "lucide-react";
+import { IconChevronDown } from "@tabler/icons-react";
 import { useStickToBottomContext } from "use-stick-to-bottom";
 
 export type ScrollButtonProps = {
@@ -34,7 +34,7 @@ function ScrollButton({
       onClick={() => scrollToBottom()}
       {...props}
     >
-      <ChevronDown className="h-5 w-5" />
+      <IconChevronDown className="h-5 w-5" />
     </Button>
   );
 }

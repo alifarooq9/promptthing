@@ -1,13 +1,12 @@
 "use client";
 
-import { type LucideIcon } from "lucide-react";
-
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import Link from "next/link";
+import { Icon, IconProps } from "@tabler/icons-react";
 
 export function NavMain({
   items,
@@ -15,7 +14,9 @@ export function NavMain({
   items: {
     title: string;
     url: string;
-    icon: LucideIcon;
+    icon: React.ForwardRefExoticComponent<
+      IconProps & React.RefAttributes<Icon>
+    >;
     isActive?: boolean;
   }[];
 }) {

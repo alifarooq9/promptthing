@@ -3,7 +3,7 @@
 import { buttonVariants } from "@/components/copy-button";
 import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
-import { SquarePenIcon } from "lucide-react";
+import { IconSquareRoundedPlus } from "@tabler/icons-react";
 import Link from "next/link";
 
 export function AppHeader() {
@@ -30,7 +30,7 @@ export function AppHeader() {
           "size-7"
         )}
       >
-        <SquarePenIcon />
+        <IconSquareRoundedPlus />
       </Link>
     </header>
   );
