@@ -25,6 +25,8 @@ import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { UIMessage } from "ai";
 import { Id } from "@/convex/_generated/dataModel";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 type ChatProps = {
   chatId?: string;
@@ -36,30 +38,80 @@ export function Chat({ chatId, initialMessages }: ChatProps) {
   const isNewChat = !chatId && !id;
   const [searchEnabled, setSearchEnabled] = React.useState(false);
   const [model, setModel] = React.useState<ModelId>("gemini-2.0-flash-lite");
+  const [isLoading, setIsLoading] = React.useState(false);
+  const router = useRouter();
 
   const apiKey = useConfigStore((state) =>
     state.getKey(getModelConfig(model).provider)
   );
 
-  const { messages, append, status, setMessages, error } = useChat({
-    id,
-    api: "/api/v1/chat",
-    experimental_prepareRequestBody(body) {
-      const finalChatId =
-        (body.requestBody as { chatId?: string }).chatId || id;
-      return {
-        search: searchEnabled,
-        model,
-        apiKey,
-        message: body.messages.at(-1),
-        messages: body.messages,
-        chatId: finalChatId,
-      };
-    },
-    initialMessages: initialMessages ?? undefined,
-  });
+  const { messages, append, status, setMessages, error, handleSubmit } =
+    useChat({
+      id,
+      api: "/api/v1/chat",
+      experimental_prepareRequestBody(body) {
+        const finalChatId =
+          (body.requestBody as { chatId?: string }).chatId || id;
+        return {
+          search: searchEnabled,
+          model,
+          apiKey,
+          message: body.messages.at(-1),
+          messages: body.messages,
+          chatId: finalChatId,
+        };
+      },
+      initialMessages: initialMessages ?? undefined,
+    });
+
+  console.log("Chat component rendered with messages:", messages);
 
   const handleCreateNewChat = useMutation(api.chat.createChat);
+
+  const handleOnSubmit = async (prompt: string) => {
+    let generatedId = id;
+    setIsLoading(true);
+    if (isNewChat && messages.length === 0 && !chatId && !id) {
+      try {
+        const message: UIMessage = {
+          id: crypto.randomUUID(),
+          role: "user",
+          content: prompt.trim(),
+          parts: [{ type: "text", text: prompt }],
+        };
+        setMessages((prev) => [...prev, message]);
+        const { success, data: newChatId } = await handleCreateNewChat({
+          title: prompt.trim().slice(0, 40) || "New Chat",
+        });
+        if (success) {
+          generatedId = newChatId as Id<"chat">;
+          setId(newChatId);
+          // Update URL without triggering route change or component re-render
+          router.replace(`/chat/${newChatId}`);
+        }
+
+        console.log("Appending message:", prompt);
+      } catch (error) {
+        toast.error("Failed to create new chat. Please try again.");
+        setIsLoading(false);
+      }
+    }
+    setIsLoading(false);
+
+    try {
+      append(
+        { role: "user", content: prompt.trim() },
+        { body: { chatId: generatedId } }
+      );
+    } catch (error) {
+      console.error("Error appending message:", error);
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "An error occurred while sending your message."
+      );
+    }
+  };
 
   return (
     <div className="flex-1 w-full relative">
@@ -130,11 +182,16 @@ export function Chat({ chatId, initialMessages }: ChatProps) {
               </Message>
             );
           })}
-          {status === "submitted" && (
-            <Message className="prose prose-neutral max-w-max dark:prose-invert text-foreground overflow-hidden">
-              <Markdown>Loading...</Markdown>
+          {isLoading ? (
+            <Message className="prose my-[1.25em] prose-neutral max-w-max dark:prose-invert text-foreground overflow-hidden">
+              Creating chat...
             </Message>
-          )}
+          ) : null}
+          {status === "submitted" ? (
+            <Message className="prose prose-neutral my-[1.25em] max-w-max dark:prose-invert text-foreground overflow-hidden">
+              Loading...
+            </Message>
+          ) : null}
           {error && (
             <Message>
               <Markdown>
@@ -153,35 +210,7 @@ export function Chat({ chatId, initialMessages }: ChatProps) {
       <div className="absolute inset-x-0 bottom-0 mx-auto max-w-2xl px-3 pb-3 md:px-4 md:pb-4">
         <PromptInput
           isLoading={status === "streaming"}
-          onSubmit={async (prompt) => {
-            let generatedId = id;
-            if (isNewChat && messages.length === 0 && !chatId && !id) {
-              try {
-                console.log("Creating new chat with title 'New Chat'");
-                const { success, data: newChatId } = await handleCreateNewChat({
-                  title: prompt.slice(0, 50) || "New Chat",
-                });
-                if (success) {
-                  generatedId = newChatId as Id<"chat">;
-                  setId(newChatId);
-                  // Update URL without triggering route change or component re-render
-                  window.history.replaceState(null, "", `/chat/${newChatId}`);
-                }
-              } catch (error) {
-                console.error("Failed to create new chat:", error);
-              }
-            }
-
-            try {
-              console.log("Appending message:", prompt);
-              await append(
-                { role: "user", content: prompt },
-                { body: { chatId: generatedId } }
-              );
-            } catch (error) {
-              console.error("Failed to append message:", error);
-            }
-          }}
+          onSubmit={handleOnSubmit}
           searchEnabled={searchEnabled}
           setSearchEnabled={setSearchEnabled}
           model={model}
