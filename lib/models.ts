@@ -140,5 +140,7 @@ export const getModelConfig = (model: Models) => {
 export const getModelsByProvider = (provider: Provider) => {
   return Object.entries(modelsConfig)
     .filter(([, config]) => config.provider === provider)
-    .map(([modelId]) => modelId as Models);
+    .map(([, config]) => {
+      return config as ModelConfig;
+    });
 };

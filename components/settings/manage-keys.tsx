@@ -17,18 +17,10 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useConfigStore } from "@/store/use-config";
-import { Provider } from "@/config/models";
+import { ModelConfig, Provider } from "@/config/models";
 import { IconEye, IconEyeOff } from "@tabler/icons-react";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-
-const availableProvidersForKeys = getAvailableProviders();
-const availableModelsAccordingToKeys = availableProvidersForKeys.map(
-  (provider) => ({
-    provider,
-    models: getModelsByProvider(provider),
-  })
-);
 
 export function ManageKeys() {
   const { appendKey, keys: storedKeys } = useConfigStore();
@@ -45,6 +37,15 @@ export function ManageKeys() {
     loading: false,
     error: undefined,
   });
+
+  const availableProvidersForKeys = getAvailableProviders();
+  const availableModelsAccordingToKeys = availableProvidersForKeys.map(
+    (provider) => ({
+      provider,
+      models: getModelsByProvider(provider),
+    })
+  );
+
   const handleSaveChanges = () => {
     try {
       setHandleSaveChangesState({ loading: true, error: undefined });
@@ -111,7 +112,10 @@ function KeyInput({
   keys,
   setKeys,
 }: {
-  item: (typeof availableModelsAccordingToKeys)[0];
+  item: {
+    provider: Provider;
+    models: ModelConfig[];
+  };
   keys: Record<string, string>;
   setKeys: React.Dispatch<React.SetStateAction<Record<string, string>>>;
 }) {
@@ -124,7 +128,7 @@ function KeyInput({
 
         {item.models.length > 0 ? (
           <div>
-            <Badge className="capitalize">{item.models[0]}</Badge>
+            <Badge className="capitalize">{item.models[0].modelName}</Badge>
             {item.models.length > 1 && (
               <Tooltip>
                 <TooltipTrigger>
@@ -135,8 +139,8 @@ function KeyInput({
                 <TooltipContent>
                   <div className="space-y-1">
                     {item.models.slice(1).map((model) => (
-                      <p key={model} className="text-xs capitalize">
-                        {model}
+                      <p key={model.modelName} className="text-xs capitalize">
+                        {model.modelName}
                       </p>
                     ))}
                   </div>
