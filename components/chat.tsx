@@ -73,13 +73,6 @@ export function Chat({ chatId, initialMessages, sharedChat }: ChatProps) {
     setIsLoading(true);
     if (isNewChat && !chatId && !id) {
       try {
-        const message: UIMessage = {
-          id: crypto.randomUUID(),
-          role: "user",
-          content: prompt.trim(),
-          parts: [{ type: "text", text: prompt }],
-        };
-        setMessages((prev) => [...prev, message]);
         const { success, data: newChatId } = await handleCreateNewChat({
           title: prompt.trim().slice(0, 40) || "New Chat",
           ...(initialMessages &&
@@ -125,7 +118,7 @@ export function Chat({ chatId, initialMessages, sharedChat }: ChatProps) {
 
   return (
     <div className="flex-1 w-full relative">
-      <ChatContainerRoot className="w-full h-svh flex flex-col">
+      <ChatContainerRoot className="w-full h-dvh flex flex-col">
         <ChatContainerContent className="p-4 relative space-y-14 pt-24 pb-38 w-full max-w-3xl mx-auto">
           {messages.map((message, index) => {
             const isAssistant = message.role === "assistant";
