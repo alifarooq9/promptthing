@@ -117,97 +117,98 @@ export function Chat({ chatId, initialMessages, sharedChat }: ChatProps) {
   };
 
   return (
-    <ChatContainerRoot className="w-full h-svh flex flex-1 flex-col">
-      <ChatContainerContent className="p-4 relative space-y-14 pt-24 pb-38 w-full max-w-3xl mx-auto">
-        {messages.map((message, index) => {
-          const isAssistant = message.role === "assistant";
+    <div className="flex-1 h-dvh relative">
+      <ChatContainerRoot className="w-full h-dvh flex flex-1 flex-col">
+        <ChatContainerContent className="p-4 relative space-y-14 pt-24 pb-38 w-full max-w-3xl mx-auto">
+          {messages.map((message, index) => {
+            const isAssistant = message.role === "assistant";
 
-          const webSearchInvoked = message.parts.find(
-            (part) => part.type === "tool-invocation"
-          );
+            const webSearchInvoked = message.parts.find(
+              (part) => part.type === "tool-invocation"
+            );
 
-          return (
-            <Message
-              key={message.id}
-              className={
-                message.role === "user" ? "justify-end" : "justify-start"
-              }
-            >
-              {isAssistant ? (
-                <div className="prose prose-neutral max-w-max dark:prose-invert text-foreground overflow-hidden">
-                  {message.parts.filter((part) => part.type === "reasoning")
-                    .length > 0 && (
-                    <Reasoning>
-                      <ReasoningTrigger>Show reasoning</ReasoningTrigger>
-                      <ReasoningContent className="ml-2 border-l-2 px-2">
-                        {message.parts
-                          .filter((part) => part.type === "reasoning")
-                          .map((part, index) => (
-                            <ReasoningResponse
-                              key={index}
-                              text={part.reasoning}
-                            />
-                          ))}
-                      </ReasoningContent>
-                    </Reasoning>
-                  )}
-                  <Markdown>
-                    {webSearchInvoked?.toolInvocation.state === "call"
-                      ? webSearchInvoked?.toolInvocation?.toolName ===
-                        "webSearch"
-                        ? "Searching the web..."
-                        : "Invoking tool..."
-                      : message.content === "" &&
-                          !message.parts
-                            .flatMap((part) => part.type)
-                            .includes("reasoning")
-                        ? "Loading..."
-                        : message.content}
-                  </Markdown>
-                  {(index === messages.length - 1
-                    ? status !== "streaming"
-                    : true) && (
-                    <AssistantMessageActions
-                      message={message}
-                      messages={messages}
-                      setMessages={setMessages}
-                      append={append}
-                      chatId={id as Id<"chat">}
-                    />
-                  )}
-                </div>
-              ) : (
-                <MessageContent className="bg-muted text-foreground px-4">
-                  {message.content}
-                </MessageContent>
-              )}
+            return (
+              <Message
+                key={message.id}
+                className={
+                  message.role === "user" ? "justify-end" : "justify-start"
+                }
+              >
+                {isAssistant ? (
+                  <div className="prose prose-neutral max-w-max dark:prose-invert text-foreground overflow-hidden">
+                    {message.parts.filter((part) => part.type === "reasoning")
+                      .length > 0 && (
+                      <Reasoning>
+                        <ReasoningTrigger>Show reasoning</ReasoningTrigger>
+                        <ReasoningContent className="ml-2 border-l-2 px-2">
+                          {message.parts
+                            .filter((part) => part.type === "reasoning")
+                            .map((part, index) => (
+                              <ReasoningResponse
+                                key={index}
+                                text={part.reasoning}
+                              />
+                            ))}
+                        </ReasoningContent>
+                      </Reasoning>
+                    )}
+                    <Markdown>
+                      {webSearchInvoked?.toolInvocation.state === "call"
+                        ? webSearchInvoked?.toolInvocation?.toolName ===
+                          "webSearch"
+                          ? "Searching the web..."
+                          : "Invoking tool..."
+                        : message.content === "" &&
+                            !message.parts
+                              .flatMap((part) => part.type)
+                              .includes("reasoning")
+                          ? "Loading..."
+                          : message.content}
+                    </Markdown>
+                    {(index === messages.length - 1
+                      ? status !== "streaming"
+                      : true) && (
+                      <AssistantMessageActions
+                        message={message}
+                        messages={messages}
+                        setMessages={setMessages}
+                        append={append}
+                        chatId={id as Id<"chat">}
+                      />
+                    )}
+                  </div>
+                ) : (
+                  <MessageContent className="bg-muted text-foreground px-4">
+                    {message.content}
+                  </MessageContent>
+                )}
+              </Message>
+            );
+          })}
+          {isLoading ? (
+            <Message className="prose my-[1.25em] prose-neutral max-w-max dark:prose-invert text-foreground overflow-hidden">
+              Creating chat...
             </Message>
-          );
-        })}
-        {isLoading ? (
-          <Message className="prose my-[1.25em] prose-neutral max-w-max dark:prose-invert text-foreground overflow-hidden">
-            Creating chat...
-          </Message>
-        ) : null}
-        {status === "submitted" ? (
-          <Message className="prose prose-neutral my-[1.25em] max-w-max dark:prose-invert text-foreground overflow-hidden">
-            Loading...
-          </Message>
-        ) : null}
-        {error && (
-          <Message>
-            <Markdown>
-              {error.message ||
-                "An error occurred while processing your request."}
-            </Markdown>
-          </Message>
-        )}
-        <ChatContainerScrollAnchor />
-      </ChatContainerContent>
-      <div className="absolute w-fit max-w-2xl mx-auto inset-x-0 h-fit bottom-40">
-        <ScrollButton className="shadow-sm" />
-      </div>
-
+          ) : null}
+          {status === "submitted" ? (
+            <Message className="prose prose-neutral my-[1.25em] max-w-max dark:prose-invert text-foreground overflow-hidden">
+              Loading...
+            </Message>
+          ) : null}
+          {error && (
+            <Message>
+              <Markdown>
+                {error.message ||
+                  "An error occurred while processing your request."}
+              </Markdown>
+            </Message>
+          )}
+          <ChatContainerScrollAnchor />
+        </ChatContainerContent>
+        <div className="absolute w-fit max-w-2xl mx-auto inset-x-0 h-fit bottom-40">
+          <ScrollButton className="shadow-sm" />
+        </div>
+      </ChatContainerRoot>
       <div className="absolute inset-x-0 bottom-0 mx-auto max-w-2xl px-3 pb-3 md:px-4 md:pb-4">
         {sharedChat && (
           <p className="text-center text-sm mb-1">
@@ -223,6 +224,6 @@ export function Chat({ chatId, initialMessages, sharedChat }: ChatProps) {
           setModel={setModel}
         />
       </div>
-    </ChatContainerRoot>
+    </div>
   );
 }
