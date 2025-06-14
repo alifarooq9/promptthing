@@ -117,8 +117,8 @@ export function Chat({ chatId, initialMessages, sharedChat }: ChatProps) {
   };
 
   return (
-    <div className="h-dvh relative">
-      <ChatContainerRoot className="w-full h-dvh flex flex-1 flex-col">
+    <div className="h-svh relative">
+      <ChatContainerRoot className="w-full h-svh flex flex-1 flex-col">
         <ChatContainerContent className="p-4 relative space-y-14 pt-24 pb-38 w-full max-w-3xl mx-auto">
           {messages.map((message, index) => {
             const isAssistant = message.role === "assistant";
