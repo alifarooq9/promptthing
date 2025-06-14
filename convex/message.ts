@@ -9,10 +9,9 @@ export const createMessage = mutation({
     content: v.string(),
     chatId: v.id("chat"),
     role: v.union(v.literal("user"), v.literal("assistant")),
-    reasoning: v.optional(v.string()),
     parts: v.string(),
   },
-  handler: async (ctx, { content, chatId, role, reasoning, parts }) => {
+  handler: async (ctx, { content, chatId, role, parts }) => {
     const userId = await getAuthUserId(ctx);
     console.log("userId", userId);
 
@@ -35,7 +34,6 @@ export const createMessage = mutation({
       content,
       chatId,
       role,
-      reasoning,
       parts,
       userId,
     });

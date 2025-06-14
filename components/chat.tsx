@@ -31,9 +31,10 @@ import { useRouter } from "next/navigation";
 type ChatProps = {
   chatId?: string;
   initialMessages?: UIMessage[];
+  sharedChat?: boolean;
 };
 
-export function Chat({ chatId, initialMessages }: ChatProps) {
+export function Chat({ chatId, initialMessages, sharedChat }: ChatProps) {
   const [id, setId] = React.useState(chatId);
   const isNewChat = !chatId && !id;
   const [searchEnabled, setSearchEnabled] = React.useState(false);
@@ -70,7 +71,7 @@ export function Chat({ chatId, initialMessages }: ChatProps) {
   const handleOnSubmit = async (prompt: string) => {
     let generatedId = id;
     setIsLoading(true);
-    if (isNewChat && messages.length === 0 && !chatId && !id) {
+    if (isNewChat && !chatId && !id) {
       try {
         const message: UIMessage = {
           id: crypto.randomUUID(),
@@ -81,6 +82,15 @@ export function Chat({ chatId, initialMessages }: ChatProps) {
         setMessages((prev) => [...prev, message]);
         const { success, data: newChatId } = await handleCreateNewChat({
           title: prompt.trim().slice(0, 40) || "New Chat",
+          ...(initialMessages &&
+            initialMessages.length > 0 && {
+              initialMessages: initialMessages.map((msg) => ({
+                content: msg.content,
+                role: msg.role as "user" | "assistant",
+                reasoning: msg.reasoning,
+                parts: JSON.stringify(msg.parts || []),
+              })),
+            }),
         });
         if (success) {
           generatedId = newChatId as Id<"chat">;
@@ -208,6 +218,11 @@ export function Chat({ chatId, initialMessages }: ChatProps) {
       </ChatContainerRoot>
 
       <div className="absolute inset-x-0 bottom-0 mx-auto max-w-2xl px-3 pb-3 md:px-4 md:pb-4">
+        {sharedChat && (
+          <p className="text-center text-sm mb-1">
+            After you send a message, it will be visible to you only.
+          </p>
+        )}
         <PromptInput
           isLoading={status === "streaming"}
           onSubmit={handleOnSubmit}

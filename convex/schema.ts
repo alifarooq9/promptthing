@@ -7,12 +7,15 @@ export default defineSchema({
   chat: defineTable({
     title: v.string(),
     userId: v.id("users"),
-  }).index("userId", ["userId"]),
+    shareId: v.optional(v.string()),
+    lastSharedMessageId: v.optional(v.id("message")),
+  })
+    .index("userId", ["userId"])
+    .index("by_shareId", ["shareId"]),
   message: defineTable({
     content: v.string(),
     role: v.union(v.literal("user"), v.literal("assistant")),
     chatId: v.id("chat"),
-    reasoning: v.optional(v.string()),
     parts: v.string(),
     userId: v.id("users"),
   })

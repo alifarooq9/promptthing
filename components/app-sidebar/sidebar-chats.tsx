@@ -1,6 +1,6 @@
 "use client";
 
-import { IconEdit, IconDots, IconTrash } from "@tabler/icons-react";
+import { IconEdit, IconDots, IconTrash, IconShare } from "@tabler/icons-react";
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -59,6 +59,7 @@ import {
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
+import { CopyButton } from "@/components/copy-button";
 
 const renameFormSchema = z.object({
   title: z.string().min(1, "Title is required").max(100, "Title is too long"),
@@ -161,13 +162,14 @@ function ChatItem({ chat }: ChatItemProps) {
   const params = useParams<{ id: string }>();
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
   const [renameDialogOpen, setRenameDialogOpen] = React.useState(false);
-
-  console.log(chat);
+  const [shareDialogOpen, setShareDialogOpen] = React.useState(false);
+  const [shareLink, setShareLink] = React.useState("Generate the link");
 
   const { isMobile } = useSidebar();
   const [loading, setLoading] = React.useState(false);
   const deleteChatsAndMessages = useMutation(api.chat.deleteChatAndMessages);
   const renameChat = useMutation(api.chat.renameChat);
+  const createShareChat = useMutation(api.chat.createShareChat);
 
   const renameForm = useForm<z.infer<typeof renameFormSchema>>({
     resolver: zodResolver(renameFormSchema),
@@ -210,9 +212,28 @@ function ChatItem({ chat }: ChatItemProps) {
     }
   };
 
+  const handleShareChat = async () => {
+    setLoading(true);
+    try {
+      const { success, data } = await createShareChat({ chatId: chat._id });
+      if (!success || !data?.shareId) {
+        throw new Error("Failed to create share link");
+      }
+      setShareLink(`${window.location.origin}/share/${data?.shareId}`);
+      // Here you can handle the share link, e.g., copy to clipboard or display it
+      console.log("Share link:", shareLink);
+    } catch (error) {
+      toast.error("Failed to create share link. Please try again.");
+      console.error("Error creating share link:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   async function onSubmit() {
     await handleRenameChat();
   }
+
   return (
     <>
       <SidebarMenuItem key={chat._id}>
@@ -242,6 +263,14 @@ function ChatItem({ chat }: ChatItemProps) {
           >
             <DropdownMenuItem
               onClick={() => {
+                setShareDialogOpen(true);
+              }}
+            >
+              <IconShare className="text-muted-foreground" />
+              <span>Share</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => {
                 renameForm.reset({
                   title: chat.title,
                 });
@@ -252,7 +281,6 @@ function ChatItem({ chat }: ChatItemProps) {
               <span>Rename</span>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-
             <DropdownMenuItem
               variant="destructive"
               onClick={() => setDeleteDialogOpen(true)}
@@ -296,6 +324,44 @@ function ChatItem({ chat }: ChatItemProps) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Dialog open={shareDialogOpen} onOpenChange={setShareDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Share Chat with link</DialogTitle>
+            <DialogDescription>
+              Any messages you add after this will not be included in the
+              shared, to share the latest messages, you will need to click on
+              &quot;Generate&quot; again.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="grid gap-4">
+            <div className="relative w-full">
+              <Input type="text" className="pe-9" readOnly value={shareLink} />
+
+              <CopyButton
+                className="absolute top-1/2 right-0.5 h-8 w-8 -translate-y-1/2 cursor-pointer"
+                content={shareLink}
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setRenameDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" disabled={loading} onClick={handleShareChat}>
+              {loading ? <Icons.loader /> : null}
+              Generate
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={renameDialogOpen} onOpenChange={setRenameDialogOpen}>
         <DialogContent className="sm:max-w-[425px]">
