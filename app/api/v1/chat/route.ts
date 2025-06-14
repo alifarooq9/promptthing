@@ -13,6 +13,8 @@ import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { convexAuthNextjsToken } from "@convex-dev/auth/nextjs/server";
+import { AnthropicProviderOptions } from "@ai-sdk/anthropic";
+import { OpenAIResponsesProviderOptions } from "@ai-sdk/openai";
 
 const client = new ConvexHttpClient(
   process.env.NEXT_PUBLIC_CONVEX_URL as string
@@ -89,6 +91,23 @@ export async function POST(req: Request) {
               effort: "medium",
             },
           } satisfies OpenRouterProviderOptions,
+
+          anthropic: {
+            thinking: {
+              type: "enabled",
+              budgetTokens: 1024,
+            },
+          } satisfies AnthropicProviderOptions,
+
+          openai: {
+            reasoningSummary: "detailed",
+            reasoningEffort: "medium",
+          } satisfies OpenAIResponsesProviderOptions,
+        }),
+      },
+      headers: {
+        ...(mdlConfig.canReason && {
+          "anthropic-beta": "interleaved-thinking-2025-05-14",
         }),
       },
       onStepFinish: async ({ stepType }) => {

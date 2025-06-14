@@ -133,7 +133,7 @@ export function PromptInput({
                             }
                           >
                             {Icon && <Icon className="mr-2 h-4 w-4" />}
-                            {availableModel.model}
+                            {availableModel.modelName}
                           </SelectItem>
                         );
                       })}

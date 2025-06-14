@@ -29,14 +29,10 @@ export default async function ChatId({ params }: ChatIdProps) {
   );
 
   if (!success) {
-    redirect("/chats");
+    redirect("/");
   }
 
-  if (!messages || messages.length === 0) {
-    redirect("/chats");
-  }
-
-  const initialMessages = messages.map(
+  const initialMessages = messages?.map(
     (message) =>
       ({
         id: message._id,

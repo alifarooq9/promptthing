@@ -1,4 +1,7 @@
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
+import { createOpenRouter } from "@openrouter/ai-sdk-provider";
+import { createAnthropic } from "@ai-sdk/anthropic";
+import { createOpenAI } from "@ai-sdk/openai";
 import {
   modelsIds,
   modelsConfig,
@@ -6,12 +9,16 @@ import {
   type ModelConfig,
   type Provider,
 } from "@/config/models";
-import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 
 export type Models = ModelId;
 
 const isProviderSupported = (provider: Provider): boolean => {
-  const supportedProviders: Provider[] = ["google", "openrouter"];
+  const supportedProviders: Provider[] = [
+    "google",
+    "openrouter",
+    "anthropic",
+    "openai",
+  ];
   return supportedProviders.includes(provider);
 };
 
@@ -33,7 +40,7 @@ const createModel = (config: ModelConfig, providedApiKey?: string) => {
   if (!apiKey || apiKey === "") {
     if (config.availableWhen === "byok" && !providedApiKey) {
       throw new Error(
-        `API key required for ${config.model}. This model requires bring-your-own-key.`
+        `API key required for ${config.modelName}. This model requires bring-your-own-key.`
       );
     }
     throw new Error(`${config.apiKeyEnv} is not set`);
@@ -50,14 +57,23 @@ const createModel = (config: ModelConfig, providedApiKey?: string) => {
     case "google": {
       const google = createGoogleGenerativeAI({ apiKey });
       console.log(`Using Google model: ${config.modelName}`);
-      return google(config.modelName);
+      return google(config.model);
     }
     case "openrouter": {
       console.log(`Using OpenRouter model: ${config.modelName}`);
       const openrouter = createOpenRouter({ apiKey });
-      return openrouter.chat(config.modelName);
+      return openrouter.chat(config.model);
     }
-
+    case "openai": {
+      console.log(`Using OpenAI model: ${config.modelName}`);
+      const openai = createOpenAI({ apiKey, compatibility: "strict" });
+      return openai(config.model);
+    }
+    case "anthropic": {
+      console.log(`Using Anthropic model: ${config.modelName}`);
+      const anthropic = createAnthropic({ apiKey });
+      return anthropic(config.model);
+    }
     default:
       throw new Error(
         `Unsupported provider: ${config.provider}. Make sure to install the required @ai-sdk package.`
@@ -92,6 +108,7 @@ export const getAvailableModelsWithCategories = () => {
     if (modelConfig.canReason) {
       return {
         model,
+        modelName: modelConfig.modelName,
         category: "Reasoning",
         icon: modelConfig.icon,
       };
@@ -99,6 +116,7 @@ export const getAvailableModelsWithCategories = () => {
 
     return {
       model,
+      modelName: modelConfig.modelName,
       category: "General",
       icon: modelConfig.icon,
     };
