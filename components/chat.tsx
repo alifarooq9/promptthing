@@ -45,24 +45,23 @@ export function Chat({ chatId, initialMessages }: ChatProps) {
     state.getKey(getModelConfig(model).provider)
   );
 
-  const { messages, append, status, setMessages, error, handleSubmit } =
-    useChat({
-      id,
-      api: "/api/v1/chat",
-      experimental_prepareRequestBody(body) {
-        const finalChatId =
-          (body.requestBody as { chatId?: string }).chatId || id;
-        return {
-          search: searchEnabled,
-          model,
-          apiKey,
-          message: body.messages.at(-1),
-          messages: body.messages,
-          chatId: finalChatId,
-        };
-      },
-      initialMessages: initialMessages ?? undefined,
-    });
+  const { messages, append, status, setMessages, error } = useChat({
+    id,
+    api: "/api/v1/chat",
+    experimental_prepareRequestBody(body) {
+      const finalChatId =
+        (body.requestBody as { chatId?: string }).chatId || id;
+      return {
+        search: searchEnabled,
+        model,
+        apiKey,
+        message: body.messages.at(-1),
+        messages: body.messages,
+        chatId: finalChatId,
+      };
+    },
+    initialMessages: initialMessages ?? undefined,
+  });
 
   console.log("Chat component rendered with messages:", messages);
 
@@ -93,6 +92,7 @@ export function Chat({ chatId, initialMessages }: ChatProps) {
         console.log("Appending message:", prompt);
       } catch (error) {
         toast.error("Failed to create new chat. Please try again.");
+        console.error("Error creating new chat:", error);
         setIsLoading(false);
       }
     }
