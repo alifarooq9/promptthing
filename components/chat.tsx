@@ -107,6 +107,7 @@ export function Chat({ chatId, initialMessages, sharedChat }: ChatProps) {
         setIsLoading(false);
       }
     }
+
     setIsLoading(false);
 
     try {

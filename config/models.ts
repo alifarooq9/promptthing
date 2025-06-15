@@ -18,6 +18,16 @@ export interface ModelConfig {
   availableWhen: "always" | "byok";
 }
 
+export interface ImageGenModelConfig {
+  model: string;
+  provider: Provider;
+  modelName: string;
+  imageToImage: boolean;
+  icon: keyof typeof Icons;
+  apiKeyEnv?: string;
+  availableWhen: "always" | "byok";
+}
+
 // Define model configurations without using modelsIds
 const modelDefinitions: Record<string, ModelConfig> = {
   "gemini-2.5-pro-preview-05-06": {
@@ -187,8 +197,53 @@ const modelDefinitions: Record<string, ModelConfig> = {
   },
 } as const;
 
+// Define image generation model configurations
+const imageGenModelDefinitions: Record<string, ImageGenModelConfig> = {
+  "dall-e-3": {
+    model: "dall-e-3",
+    provider: "openai",
+    modelName: "DALL-E 3",
+    imageToImage: true,
+    icon: "openai",
+    availableWhen: "byok",
+  },
+
+  "gpt-image-1": {
+    model: "gpt-image-1",
+    provider: "openai",
+    modelName: "GPT Image Gen",
+    imageToImage: true,
+    icon: "openai",
+    availableWhen: "byok",
+  },
+
+  "runware:101@1": {
+    model: "runware:101@1",
+    provider: "runware",
+    modelName: "Runware 101@1",
+    imageToImage: true,
+    icon: "google",
+    availableWhen: "byok",
+  },
+
+  "runware:100@1": {
+    model: "runware:100@1",
+    provider: "runware",
+    modelName: "Runware 100@1",
+    imageToImage: true,
+    icon: "google",
+    availableWhen: "byok",
+  },
+} as const;
+
 export type ModelId = keyof typeof modelDefinitions;
 export const modelsConfig = modelDefinitions;
 export const modelsIds = Object.fromEntries(
   Object.keys(modelDefinitions).map((key) => [key, key])
 ) as { [K in ModelId]: K };
+
+export type ImageGenModelId = keyof typeof imageGenModelDefinitions;
+export const imageGenModelsConfig = imageGenModelDefinitions;
+export const imageGenModelsIds = Object.fromEntries(
+  Object.keys(imageGenModelDefinitions).map((key) => [key, key])
+) as { [K in ImageGenModelId]: K };

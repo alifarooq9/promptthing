@@ -9,7 +9,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { getAvailableProviders, getModelsByProvider } from "@/lib/models";
+import {
+  getAllAvailableProviders,
+  getAllModelsFromProvider,
+} from "@/lib/models";
 import React from "react";
 import {
   Tooltip,
@@ -17,7 +20,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useConfigStore } from "@/store/use-config";
-import { ModelConfig, Provider } from "@/config/models";
+import { Provider } from "@/config/models";
 import { IconEye, IconEyeOff } from "@tabler/icons-react";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
@@ -38,13 +41,16 @@ export function ManageKeys() {
     error: undefined,
   });
 
-  const availableProvidersForKeys = getAvailableProviders();
+  const availableProvidersForKeys = getAllAvailableProviders();
+
   const availableModelsAccordingToKeys = availableProvidersForKeys.map(
     (provider) => ({
       provider,
-      models: getModelsByProvider(provider),
+      models: getAllModelsFromProvider(provider),
     })
   );
+
+  console.log(availableModelsAccordingToKeys, availableProvidersForKeys);
 
   const handleSaveChanges = () => {
     try {
@@ -86,25 +92,6 @@ export function ManageKeys() {
               setKeys={setKeys}
             />
           ))}
-
-          <KeyInput
-            keys={keys}
-            setKeys={setKeys}
-            item={{
-              provider: "runware",
-              models: [
-                {
-                  availableWhen: "byok",
-                  canReason: false,
-                  icon: "runware" as "google",
-                  model: "runware:100@1",
-                  modelName: "Runware:100@1",
-                  provider: "runware",
-                  supportsWebSearch: false,
-                },
-              ],
-            }}
-          />
         </div>
       </CardContent>
       <CardFooter className="flex flex-col gap-2">
@@ -133,7 +120,7 @@ function KeyInput({
 }: {
   item: {
     provider: Provider;
-    models: ModelConfig[];
+    models: ReturnType<typeof getAllModelsFromProvider>;
   };
   keys: Record<string, string>;
   setKeys: React.Dispatch<React.SetStateAction<Record<string, string>>>;
