@@ -2,12 +2,13 @@ import {
   appendResponseMessages,
   smoothStream,
   streamText,
+  ToolSet,
   UIMessage,
 } from "ai";
 import { GoogleGenerativeAIProviderOptions } from "@ai-sdk/google";
 import { OpenRouterProviderOptions } from "@openrouter/ai-sdk-provider";
 import { getModel } from "@/lib/models";
-import { webSearchTool } from "@/lib/tools";
+import { generateImageTool, webSearchTool } from "@/lib/tools";
 import { ModelId } from "@/config/models";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
@@ -25,15 +26,21 @@ export async function POST(req: Request) {
     messages,
     search,
     model,
+    generateImage,
     apiKey,
+    toolsApiKey,
     chatId,
     message,
   }: {
     messages: UIMessage[];
     search: boolean;
+    generateImage: boolean;
     model: ModelId;
     apiKey?: string;
     chatId: string;
+    toolsApiKey?: {
+      runware?: string;
+    };
     message: UIMessage;
   } = await req.json();
 
@@ -45,7 +52,7 @@ export async function POST(req: Request) {
 
   client.setAuth(token);
 
-  let tools;
+  let tools: ToolSet = {};
 
   try {
     const mdlConfig = getModel(model, apiKey);
@@ -57,7 +64,17 @@ export async function POST(req: Request) {
 
     if (search && mdlConfig.supportsWebSearch) {
       tools = {
+        ...tools,
         webSearch: webSearchTool(),
+      };
+    }
+
+    console.log(generateImage, tools);
+
+    if (generateImage) {
+      tools = {
+        ...tools,
+        generateImage: generateImageTool(toolsApiKey?.runware as string),
       };
     }
 
@@ -71,7 +88,7 @@ export async function POST(req: Request) {
       Your answers will be used in a chat application.
       Your responses should be always in markdown format.
       ${search ? "You can search the web for up-to-date information. use in if necessary." : ""}
-      `,
+      ${generateImage ? "You can create/generate an image based on a prompt." : ""}`,
       messages,
       maxTokens: 2048,
       experimental_transform: [smoothStream({ chunking: "line" })],

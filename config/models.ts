@@ -1,6 +1,11 @@
 import { Icons } from "@/components/ui/icons";
 
-export type Provider = "google" | "openrouter" | "openai" | "anthropic";
+export type Provider =
+  | "google"
+  | "openrouter"
+  | "openai"
+  | "anthropic"
+  | "runware";
 
 export interface ModelConfig {
   model: string;

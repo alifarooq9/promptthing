@@ -9,9 +9,11 @@ import {
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
   IconArrowUp,
-  IconSettings,
-  IconWorld,
   IconMicrophone,
+  IconChevronDown,
+  IconAdjustmentsHorizontal,
+  IconWorld,
+  IconPhotoScan,
 } from "@tabler/icons-react";
 import React from "react";
 import { cn } from "@/lib/utils";
@@ -26,14 +28,22 @@ import {
 } from "@/components/ui/select";
 import { getAvailableModelsWithCategories, getModelConfig } from "@/lib/models";
 import { arrayIcons } from "@/components/ui/icons";
-import { useSettingsModalStore } from "@/store/use-settings-modal";
 import { useConfigStore } from "@/store/use-config";
+import { ToolsEnabled } from "@/components/chat";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 type PromptInputProps = {
   isLoading?: boolean;
   onSubmit: (prompt: string) => void | Promise<void>;
-  searchEnabled: boolean;
-  setSearchEnabled: React.Dispatch<React.SetStateAction<boolean>>;
+  toolsEnabled: ToolsEnabled;
+  setToolsEnabled: React.Dispatch<React.SetStateAction<ToolsEnabled>>;
   model: ModelId;
   setModel: React.Dispatch<React.SetStateAction<ModelId>>;
 };
@@ -41,8 +51,8 @@ type PromptInputProps = {
 export function PromptInput({
   isLoading,
   onSubmit,
-  searchEnabled,
-  setSearchEnabled,
+  toolsEnabled,
+  setToolsEnabled,
   model,
   setModel,
 }: PromptInputProps) {
@@ -58,8 +68,6 @@ export function PromptInput({
 
   const availableModels = getAvailableModelsWithCategories();
   const selectedModel = getModelConfig(model);
-
-  const openSettingsModal = useSettingsModalStore((state) => state.open);
   const getKey = useConfigStore((state) => state.getKey);
 
   return (
@@ -78,11 +86,11 @@ export function PromptInput({
 
         <PromptInputActions className="mt-5 flex w-full items-center justify-between gap-2 px-3 pb-3">
           <div className="flex items-center gap-2">
-            <PromptInputAction tooltip="Change model">
-              <Select
-                value={model}
-                onValueChange={(value) => setModel(value as ModelId)}
-              >
+            <Select
+              value={model}
+              onValueChange={(value) => setModel(value as ModelId)}
+            >
+              <PromptInputAction tooltip="Change model">
                 <SelectTrigger
                   size="sm"
                   className={cn(
@@ -100,73 +108,98 @@ export function PromptInput({
                     return Icon ? <Icon /> : null;
                   })()}
                 </SelectTrigger>
-                <SelectContent>
-                  {Object.entries(
-                    availableModels.reduce(
-                      (groups, availableModel) => {
-                        const category = availableModel.category || "Other";
-                        if (!groups[category]) {
-                          groups[category] = [];
-                        }
-                        groups[category].push(availableModel);
-                        return groups;
-                      },
-                      {} as Record<string, typeof availableModels>
-                    )
-                  ).map(([category, models]) => (
-                    <SelectGroup key={category}>
-                      <SelectLabel>{category}</SelectLabel>
-                      {models.map((availableModel) => {
-                        const mdlConfig = getModelConfig(availableModel.model);
-                        const Icon = arrayIcons.find(
-                          (icon) => icon.key === mdlConfig.icon
-                        )?.Icon;
-
-                        return (
-                          <SelectItem
-                            key={availableModel.model}
-                            value={availableModel.model}
-                            className="cursor-pointer"
-                            disabled={
-                              mdlConfig.availableWhen === "byok" &&
-                              !getKey(mdlConfig.provider)
-                            }
-                          >
-                            {Icon && <Icon className="mr-2 h-4 w-4" />}
-                            {availableModel.modelName}
-                          </SelectItem>
-                        );
-                      })}
-                    </SelectGroup>
-                  ))}
-                </SelectContent>
-              </Select>
-            </PromptInputAction>
-
-            {selectedModel?.supportsWebSearch && (
-              <PromptInputAction tooltip="Search web">
-                <Button
-                  variant={searchEnabled ? "default" : "outline"}
-                  size="sm"
-                  className={cn("rounded-full cursor-pointer")}
-                  onClick={() => setSearchEnabled(!searchEnabled)}
-                >
-                  <IconWorld size={18} />
-                  Search
-                </Button>
               </PromptInputAction>
-            )}
 
-            <PromptInputAction tooltip="Open settings">
-              <Button
-                variant="outline"
-                size="icon"
-                className="size-8 rounded-full cursor-pointer"
-                onClick={openSettingsModal}
-              >
-                <IconSettings size={18} />
-              </Button>
-            </PromptInputAction>
+              <SelectContent>
+                {Object.entries(
+                  availableModels.reduce(
+                    (groups, availableModel) => {
+                      const category = availableModel.category || "Other";
+                      if (!groups[category]) {
+                        groups[category] = [];
+                      }
+                      groups[category].push(availableModel);
+                      return groups;
+                    },
+                    {} as Record<string, typeof availableModels>
+                  )
+                ).map(([category, models]) => (
+                  <SelectGroup key={category}>
+                    <SelectLabel>{category}</SelectLabel>
+                    {models.map((availableModel) => {
+                      const mdlConfig = getModelConfig(availableModel.model);
+                      const Icon = arrayIcons.find(
+                        (icon) => icon.key === mdlConfig.icon
+                      )?.Icon;
+
+                      return (
+                        <SelectItem
+                          key={availableModel.model}
+                          value={availableModel.model}
+                          className="cursor-pointer"
+                          disabled={
+                            mdlConfig.availableWhen === "byok" &&
+                            !getKey(mdlConfig.provider)
+                          }
+                        >
+                          {Icon && <Icon className="mr-2 h-4 w-4" />}
+                          {availableModel.modelName}
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectGroup>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <DropdownMenu>
+              <PromptInputAction tooltip="Configure tools">
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className={cn(
+                      buttonVariants({ variant: "outline", size: "sm" }),
+                      "rounded-full cursor-pointer"
+                    )}
+                  >
+                    <IconAdjustmentsHorizontal size={18} />
+                    <IconChevronDown className="opacity-50 text-muted-foreground" />
+                  </Button>
+                </DropdownMenuTrigger>
+              </PromptInputAction>
+
+              <DropdownMenuContent align="start" className="w-48">
+                <DropdownMenuLabel>Tools</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuCheckboxItem
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setToolsEnabled((prev) => ({
+                      ...prev,
+                      search: !prev.search,
+                    }));
+                  }}
+                  checked={toolsEnabled.search}
+                >
+                  <IconWorld />
+                  Search the web
+                </DropdownMenuCheckboxItem>
+                <DropdownMenuCheckboxItem
+                  checked={toolsEnabled.generateImage}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setToolsEnabled((prev) => ({
+                      ...prev,
+                      generateImage: !prev.generateImage,
+                    }));
+                  }}
+                >
+                  <IconPhotoScan />
+                  Create an image
+                </DropdownMenuCheckboxItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
           <div className="flex items-center gap-2">
             <PromptInputAction tooltip="Voice input">

@@ -26,7 +26,6 @@ import { api } from "@/convex/_generated/api";
 import { UIMessage } from "ai";
 import { Id } from "@/convex/_generated/dataModel";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
 
 type ChatProps = {
   chatId?: string;
@@ -34,17 +33,25 @@ type ChatProps = {
   sharedChat?: boolean;
 };
 
+export type ToolsEnabled = {
+  search: boolean;
+  generateImage: boolean;
+};
+
 export function Chat({ chatId, initialMessages, sharedChat }: ChatProps) {
   const [id, setId] = React.useState(chatId);
   const isNewChat = !chatId && !id;
-  const [searchEnabled, setSearchEnabled] = React.useState(false);
+  const [toolsEnabled, setToolsEnabled] = React.useState<ToolsEnabled>({
+    search: false,
+    generateImage: false,
+  });
   const [model, setModel] = React.useState<ModelId>("gemini-2.0-flash-lite");
   const [isLoading, setIsLoading] = React.useState(false);
-  const router = useRouter();
 
   const apiKey = useConfigStore((state) =>
     state.getKey(getModelConfig(model).provider)
   );
+  const runwareApiKey = useConfigStore((state) => state.getKey("runware"));
 
   const { messages, append, status, setMessages, error } = useChat({
     id,
@@ -53,18 +60,20 @@ export function Chat({ chatId, initialMessages, sharedChat }: ChatProps) {
       const finalChatId =
         (body.requestBody as { chatId?: string }).chatId || id;
       return {
-        search: searchEnabled,
+        search: toolsEnabled.search,
+        generateImage: toolsEnabled.generateImage,
         model,
         apiKey,
         message: body.messages.at(-1),
         messages: body.messages,
         chatId: finalChatId,
+        toolsApiKey: {
+          runware: runwareApiKey,
+        },
       };
     },
     initialMessages: initialMessages ?? undefined,
   });
-
-  console.log("Chat component rendered with messages:", messages);
 
   const handleCreateNewChat = useMutation(api.chat.createChat);
 
@@ -80,7 +89,6 @@ export function Chat({ chatId, initialMessages, sharedChat }: ChatProps) {
               initialMessages: initialMessages.map((msg) => ({
                 content: msg.content,
                 role: msg.role as "user" | "assistant",
-                reasoning: msg.reasoning,
                 parts: JSON.stringify(msg.parts || []),
               })),
             }),
@@ -89,7 +97,7 @@ export function Chat({ chatId, initialMessages, sharedChat }: ChatProps) {
           generatedId = newChatId as Id<"chat">;
           setId(newChatId);
           // Update URL without triggering route change or component re-render
-          router.replace(`/chat/${newChatId}`);
+          window.history.replaceState({}, "", `/chat/${newChatId}`);
         }
 
         console.log("Appending message:", prompt);
@@ -118,12 +126,12 @@ export function Chat({ chatId, initialMessages, sharedChat }: ChatProps) {
 
   return (
     <div className="h-svh relative">
-      <ChatContainerRoot className="w-full h-svh flex flex-1 flex-col">
+      <ChatContainerRoot className="w-full h-full flex flex-1 flex-col">
         <ChatContainerContent className="p-4 relative space-y-14 pt-24 pb-38 w-full max-w-3xl mx-auto">
           {messages.map((message, index) => {
             const isAssistant = message.role === "assistant";
 
-            const webSearchInvoked = message.parts.find(
+            const toolInvoked = message.parts.find(
               (part) => part.type === "tool-invocation"
             );
 
@@ -135,7 +143,7 @@ export function Chat({ chatId, initialMessages, sharedChat }: ChatProps) {
                 }
               >
                 {isAssistant ? (
-                  <div className="prose prose-neutral max-w-max dark:prose-invert text-foreground overflow-hidden">
+                  <div className="prose prose-neutral w-full max-w-none dark:prose-invert text-foreground overflow-hidden">
                     {message.parts.filter((part) => part.type === "reasoning")
                       .length > 0 && (
                       <Reasoning>
@@ -152,19 +160,53 @@ export function Chat({ chatId, initialMessages, sharedChat }: ChatProps) {
                         </ReasoningContent>
                       </Reasoning>
                     )}
-                    <Markdown>
-                      {webSearchInvoked?.toolInvocation.state === "call"
-                        ? webSearchInvoked?.toolInvocation?.toolName ===
-                          "webSearch"
-                          ? "Searching the web..."
-                          : "Invoking tool..."
-                        : message.content === "" &&
-                            !message.parts
-                              .flatMap((part) => part.type)
-                              .includes("reasoning")
-                          ? "Loading..."
-                          : message.content}
-                    </Markdown>
+                    {(() => {
+                      const imageResults = message.parts
+                        .filter(
+                          (part) =>
+                            part.type === "tool-invocation" &&
+                            part.toolInvocation?.toolName === "generateImage" &&
+                            part.toolInvocation.state === "result"
+                        )
+                        .flatMap((part) =>
+                          part.type === "tool-invocation" &&
+                          // @ts-expect-error
+                          part.toolInvocation.result
+                            ? // @ts-expect-error
+                              Array.isArray(part.toolInvocation.result)
+                              ? // @ts-expect-error
+                                part.toolInvocation.result
+                              : // @ts-expect-error
+                                [part.toolInvocation.result]
+                            : []
+                        );
+
+                      return imageResults.length > 0 ? (
+                        <div className="w-full space-y-4">
+                          <PreviewImages images={imageResults} />
+                          {message.content && (
+                            <Markdown>{message.content}</Markdown>
+                          )}
+                        </div>
+                      ) : (
+                        <Markdown>
+                          {toolInvoked?.toolInvocation.state === "call"
+                            ? toolInvoked?.toolInvocation?.toolName ===
+                              "webSearch"
+                              ? "Searching the web..."
+                              : toolInvoked?.toolInvocation?.toolName ===
+                                  "generateImage"
+                                ? "Generating image..."
+                                : "Invoking tool..."
+                            : message.content === "" &&
+                                !message.parts
+                                  .flatMap((part) => part.type)
+                                  .includes("reasoning")
+                              ? "Loading..."
+                              : message.content}
+                        </Markdown>
+                      );
+                    })()}
                     {(index === messages.length - 1
                       ? status !== "streaming"
                       : true) && (
@@ -218,12 +260,27 @@ export function Chat({ chatId, initialMessages, sharedChat }: ChatProps) {
         <PromptInput
           isLoading={status === "streaming"}
           onSubmit={handleOnSubmit}
-          searchEnabled={searchEnabled}
-          setSearchEnabled={setSearchEnabled}
+          toolsEnabled={toolsEnabled}
+          setToolsEnabled={setToolsEnabled}
           model={model}
           setModel={setModel}
         />
       </div>
+    </div>
+  );
+}
+
+function PreviewImages({ images }: { images: string[] }) {
+  return (
+    <div className="w-full grid grid-cols-2 gap-4">
+      {images.map((src, index) => (
+        <img
+          key={index}
+          src={src}
+          alt={`Generated image ${index}`}
+          className="aspect-square"
+        />
+      ))}
     </div>
   );
 }

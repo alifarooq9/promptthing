@@ -13,11 +13,7 @@ import {
   SidebarRail,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import {
-  IconSearch,
-  IconSettings,
-  IconSquareRoundedPlus,
-} from "@tabler/icons-react";
+import { IconSearch, IconSquareRoundedPlus } from "@tabler/icons-react";
 import { NavUser } from "@/components/app-sidebar/nav-user";
 
 const navMain = [
@@ -30,11 +26,6 @@ const navMain = [
     title: "Search",
     url: "#",
     icon: IconSearch,
-  },
-  {
-    title: "Settings",
-    url: "#",
-    icon: IconSettings,
   },
 ];
 

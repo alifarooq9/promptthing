@@ -86,6 +86,25 @@ export function ManageKeys() {
               setKeys={setKeys}
             />
           ))}
+
+          <KeyInput
+            keys={keys}
+            setKeys={setKeys}
+            item={{
+              provider: "runware",
+              models: [
+                {
+                  availableWhen: "byok",
+                  canReason: false,
+                  icon: "runware" as "google",
+                  model: "runware:100@1",
+                  modelName: "Runware:100@1",
+                  provider: "runware",
+                  supportsWebSearch: false,
+                },
+              ],
+            }}
+          />
         </div>
       </CardContent>
       <CardFooter className="flex flex-col gap-2">

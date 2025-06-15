@@ -5,5 +5,6 @@ import { redirect } from "next/navigation";
 export default async function Home() {
   const user = await convexAuthNextjsToken();
   if (!user) redirect("/signin");
-  return <Chat />;
+
+  return <Chat key={`home-${Math.random()}`} />;
 }

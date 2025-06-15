@@ -1,5 +1,7 @@
+import { api } from "@/convex/_generated/api";
 import { tavily } from "@tavily/core";
 import { tool } from "ai";
+import { fetchAction } from "convex/nextjs";
 import { z } from "zod";
 
 export function webSearchTool() {
@@ -30,6 +32,25 @@ export function webSearchTool() {
         score: result.score,
         rawContent: result.rawContent?.slice(0, 1000) ?? "",
       }));
+    },
+  });
+}
+
+export function generateImageTool(apiKey: string) {
+  return tool({
+    description: "Generate and transform an image based on a prompt",
+    parameters: z.object({
+      prompt: z
+        .string()
+        .min(1)
+        .max(256)
+        .describe("The image generation prompt"),
+    }),
+    execute: async ({ prompt }) => {
+      return await fetchAction(api.image.generateAndStore, {
+        prompt,
+        apiKey,
+      });
     },
   });
 }

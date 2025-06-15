@@ -16,6 +16,7 @@ import type {
 import type * as auth from "../auth.js";
 import type * as chat from "../chat.js";
 import type * as http from "../http.js";
+import type * as image from "../image.js";
 import type * as message from "../message.js";
 import type * as user from "../user.js";
 
@@ -31,6 +32,7 @@ declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   chat: typeof chat;
   http: typeof http;
+  image: typeof image;
   message: typeof message;
   user: typeof user;
 }>;
