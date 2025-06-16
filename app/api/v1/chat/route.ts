@@ -131,10 +131,12 @@ export async function POST(req: Request) {
         });
 
         try {
-          console.log("Stream finished:", assistantMessage);
           await client.mutation(api.message.createMessage, {
             chatId: chatId as Id<"chat">,
-            content: assistantMessage.content,
+            content:
+              assistantMessage.content.trim() !== ""
+                ? assistantMessage.content
+                : "Some error occurred during the generation of the response, regenerate the response.",
             role: "assistant",
             parts: JSON.stringify(assistantMessage.parts || []),
           });

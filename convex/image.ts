@@ -21,7 +21,10 @@ export const generateAndStore = action({
       const model = getImageGenModel(imageGenModel, apiKey);
 
       if (!model) {
-        throw new Error("Image generation model not found");
+        return {
+          success: false,
+          message: "Image generation model not found",
+        };
       }
 
       const { images } = await generateImage({
@@ -57,15 +60,22 @@ export const generateAndStore = action({
         }
       }
 
-      return imagesUrls;
+      return {
+        success: true,
+        data: { imagesUrls },
+        message: "Image generated successfully",
+      };
     } catch (error) {
       if (NoImageGeneratedError.isInstance(error)) {
-        throw new Error(error.message || "No image generated");
+        return {
+          success: false,
+          message: "No image generated",
+        };
       }
-      throw new Error(
-        "Failed to generate image: " +
-          (error instanceof Error ? error.message : error)
-      );
+      return {
+        success: false,
+        message: `Error generating image: ${error instanceof Error ? error.message : "Unknown error"}`,
+      };
     }
   },
 });

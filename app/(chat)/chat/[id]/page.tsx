@@ -42,5 +42,7 @@ export default async function ChatId({ params }: ChatIdProps) {
       }) as UIMessage
   );
 
+  console.log("Initial messages:", initialMessages);
+
   return <Chat chatId={id} initialMessages={initialMessages} />;
 }

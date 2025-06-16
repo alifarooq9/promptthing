@@ -127,11 +127,10 @@ export function Chat({ chatId, initialMessages, sharedChat }: ChatProps) {
         setIsLoading(false);
       }
     }
-
     setIsLoading(false);
 
     try {
-      append(
+      await append(
         { role: "user", content: prompt.trim() },
         { body: { chatId: generatedId } }
       );
@@ -211,7 +210,8 @@ export function Chat({ chatId, initialMessages, sharedChat }: ChatProps) {
                         </div>
                       ) : (
                         <Markdown>
-                          {toolInvoked?.toolInvocation.state === "call"
+                          {status === "streaming" &&
+                          toolInvoked?.toolInvocation.state === "call"
                             ? toolInvoked?.toolInvocation?.toolName ===
                               "webSearch"
                               ? "Searching the web..."
@@ -219,12 +219,15 @@ export function Chat({ chatId, initialMessages, sharedChat }: ChatProps) {
                                   "generateImage"
                                 ? "Generating image..."
                                 : "Invoking tool..."
-                            : message.content === "" &&
+                            : status === "streaming" &&
+                                message.content === "" &&
                                 !message.parts
                                   .flatMap((part) => part.type)
                                   .includes("reasoning")
                               ? "Loading..."
-                              : message.content}
+                              : status === "error"
+                                ? "An error occurred while processing your request. try regenerating the response."
+                                : message.content}
                         </Markdown>
                       );
                     })()}

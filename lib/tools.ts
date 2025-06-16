@@ -52,11 +52,28 @@ export function generateImageTool(
       prompt: z.string().min(1).describe("The image generation prompt"),
     }),
     execute: async ({ prompt }) => {
-      return fetchAction(api.image.generateAndStore, {
-        prompt,
-        apiKey,
-        imageGenModel,
-      });
+      const { success, data, message } = await fetchAction(
+        api.image.generateAndStore,
+        {
+          prompt,
+          apiKey,
+          imageGenModel,
+        }
+      );
+
+      if (!success) {
+        console.error("Image generation failed:", data);
+        throw new Error(message || "Image generation failed");
+      }
+
+      if (!data || !data.imagesUrls || data.imagesUrls.length === 0) {
+        throw new Error("No images generated");
+      }
+
+      return {
+        imagesUrls: data.imagesUrls,
+        message: "Image generated successfully",
+      };
     },
   });
 }
