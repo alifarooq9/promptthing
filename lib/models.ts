@@ -12,7 +12,6 @@ import {
   type Provider,
   ImageGenModelConfig,
   imageGenModelsConfig,
-  imageGenModelsIds,
 } from "@/config/models";
 
 export type Models = ModelId;

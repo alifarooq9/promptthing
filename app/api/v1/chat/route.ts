@@ -80,7 +80,7 @@ export async function POST(req: Request) {
       maxTokens: 2048,
       experimental_transform: [smoothStream({ chunking: "line" })],
       tools: tools,
-      maxSteps: 2,
+      maxSteps: 3,
       providerOptions: {
         ...(mdlConfig.canReason && {
           google: {

@@ -26,6 +26,7 @@ import { api } from "@/convex/_generated/api";
 import { UIMessage } from "ai";
 import { Id } from "@/convex/_generated/dataModel";
 import { toast } from "sonner";
+import Link from "next/link";
 
 type ChatProps = {
   chatId?: string;
@@ -289,15 +290,51 @@ export function Chat({ chatId, initialMessages, sharedChat }: ChatProps) {
 }
 
 function PreviewImages({ images }: { images: string[] }) {
+  const handleDownload = async (src: string, index: number) => {
+    try {
+      const response = await fetch(src);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `generated-image-${index + 1}.png`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error("Download failed:", error);
+    }
+  };
+
   return (
-    <div className="w-full grid grid-cols-2 gap-4">
+    <div className="w-full relative flex flex-wrap gap-4">
       {images.map((src, index) => (
-        <img
-          key={index}
-          src={src}
-          alt={`Generated image ${index}`}
-          className="aspect-square"
-        />
+        <div className="relative aspect-square lg:w-1/2" key={index}>
+          <img
+            src={src}
+            alt={`Generated image ${index}`}
+            className="aspect-square relative"
+          />
+
+          <div className="flex items-center gap-2">
+            <Link
+              href={src}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline text-sm"
+            >
+              View Full
+            </Link>
+
+            <button
+              onClick={() => handleDownload(src, index)}
+              className="underline text-sm cursor-pointer"
+            >
+              Download
+            </button>
+          </div>
+        </div>
       ))}
     </div>
   );
