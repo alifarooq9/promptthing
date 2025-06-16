@@ -215,6 +215,8 @@ export const getImageGenModel = (model?: string, apiKey?: string) => {
 
   const config = imageGenModelsConfig[selectedModel];
 
+  console.log(config, "config");
+
   if (!config) {
     throw new Error(
       `Image generation model configuration not found for: ${selectedModel}`
@@ -226,6 +228,13 @@ export const getImageGenModel = (model?: string, apiKey?: string) => {
     modelName: config.modelName,
     provider: config.provider,
   };
+};
+
+export const getImageGenProviders = () => {
+  const providers = getAllAvailableProviders();
+  return providers.filter(
+    (provider) => getImageGenModelsByProvider(provider).length > 0
+  );
 };
 
 export const getAvailableImageGenModels = () => {
@@ -245,9 +254,11 @@ export const getAvailableImageGenModelsWithCategories = () => {
     };
   });
 };
+
 export const getImageGenModelConfig = (model: string) => {
-  return imageGenModelsConfig[model];
+  return imageGenModelsConfig[model] as ImageGenModelConfig;
 };
+
 export const getImageGenModelsByProvider = (provider: Provider) => {
   return Object.entries(imageGenModelsConfig)
     .filter(([, config]) => config.provider === provider)
@@ -255,6 +266,7 @@ export const getImageGenModelsByProvider = (provider: Provider) => {
       return config as ImageGenModelConfig;
     });
 };
+
 export const getAvailableImageGenProviders = (): Provider[] => {
   const providers = new Set<Provider>();
 

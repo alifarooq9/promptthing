@@ -20,7 +20,7 @@ import { useChat } from "@ai-sdk/react";
 import React from "react";
 import { ImageGenModelId, ModelId } from "@/config/models";
 import { useConfigStore } from "@/store/use-config";
-import { getModelConfig } from "@/lib/models";
+import { getImageGenModelConfig, getModelConfig } from "@/lib/models";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { UIMessage } from "ai";
@@ -59,13 +59,17 @@ export function Chat({ chatId, initialMessages, sharedChat }: ChatProps) {
     search: false,
     generateImage: false,
   });
-  const [model, setModel] = React.useState<ModelId>("gemini-2.0-flash-lite");
   const [isLoading, setIsLoading] = React.useState(false);
+
+  const { selectedModel: model, selectedImageGenModel: imageGenModel } =
+    useConfigStore();
 
   const apiKey = useConfigStore((state) =>
     state.getKey(getModelConfig(model).provider)
   );
-  const runwareApiKey = useConfigStore((state) => state.getKey("runware"));
+  const runwareApiKey = useConfigStore((state) =>
+    state.getKey(getImageGenModelConfig(imageGenModel).provider)
+  );
 
   const { messages, append, status, setMessages, error } = useChat({
     id,
@@ -84,7 +88,7 @@ export function Chat({ chatId, initialMessages, sharedChat }: ChatProps) {
         toolsApiKey: {
           runware: runwareApiKey,
         },
-        imageGenModel: "runware:100@1",
+        imageGenModel,
       } as BodyRequest;
     },
     initialMessages: initialMessages ?? undefined,
@@ -278,8 +282,6 @@ export function Chat({ chatId, initialMessages, sharedChat }: ChatProps) {
           onSubmit={handleOnSubmit}
           toolsEnabled={toolsEnabled}
           setToolsEnabled={setToolsEnabled}
-          model={model}
-          setModel={setModel}
         />
       </div>
     </div>

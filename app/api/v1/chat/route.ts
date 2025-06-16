@@ -1,7 +1,7 @@
 import { appendResponseMessages, smoothStream, streamText, ToolSet } from "ai";
 import { GoogleGenerativeAIProviderOptions } from "@ai-sdk/google";
 import { OpenRouterProviderOptions } from "@openrouter/ai-sdk-provider";
-import { getModel } from "@/lib/models";
+import { getImageGenModelConfig, getModel } from "@/lib/models";
 import { generateImageTool, webSearchTool } from "@/lib/tools";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";

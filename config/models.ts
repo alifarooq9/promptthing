@@ -222,7 +222,7 @@ const imageGenModelDefinitions: Record<string, ImageGenModelConfig> = {
     provider: "runware",
     modelName: "Runware 101@1",
     imageToImage: true,
-    icon: "google",
+    icon: "runware",
     availableWhen: "byok",
   },
 
@@ -231,7 +231,7 @@ const imageGenModelDefinitions: Record<string, ImageGenModelConfig> = {
     provider: "runware",
     modelName: "Runware 100@1",
     imageToImage: true,
-    icon: "google",
+    icon: "runware",
     availableWhen: "byok",
   },
 } as const;

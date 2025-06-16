@@ -1,6 +1,7 @@
 import { ImageGenModelId } from "@/config/models";
 import { api } from "@/convex/_generated/api";
 import { getImageGenModel } from "@/lib/models";
+import { Provider } from "@auth/core/providers";
 import { tavily } from "@tavily/core";
 import { tool } from "ai";
 import { fetchAction } from "convex/nextjs";

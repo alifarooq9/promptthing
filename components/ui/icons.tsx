@@ -82,6 +82,74 @@ export const Icons = {
       />
     </svg>
   ),
+  runware: (props: IconProps) => (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="1em"
+      height="1em"
+      preserveAspectRatio="xMidYMid"
+      viewBox="0 0 228 228"
+      {...props}
+    >
+      <defs>
+        <linearGradient
+          id="a"
+          x1="145.2"
+          x2="195.8"
+          y1="137.1"
+          y2="240.8"
+          gradientUnits="userSpaceOnUse"
+        >
+          <stop offset="0" stopColor="#6332ff"></stop>
+          <stop offset="1" stopColor="#a37eff"></stop>
+        </linearGradient>
+        <linearGradient
+          id="b"
+          x1="15.4"
+          x2="211.4"
+          y1="36.2"
+          y2="115.4"
+          gradientUnits="userSpaceOnUse"
+        >
+          <stop offset="0" stopColor="#ccb3ff"></stop>
+          <stop offset=".2" stopColor="#c9afff"></stop>
+          <stop offset=".5" stopColor="#c1a2ff"></stop>
+          <stop offset=".7" stopColor="#b28eff"></stop>
+          <stop offset="1" stopColor="#9f71ff"></stop>
+          <stop offset="1" stopColor="#9e70ff"></stop>
+        </linearGradient>
+        <linearGradient
+          id="c"
+          x1="152.5"
+          x2="188.8"
+          y1="76"
+          y2="150.5"
+          gradientUnits="userSpaceOnUse"
+        >
+          <stop offset="0" stopColor="#6332ff"></stop>
+          <stop offset="1" stopColor="#a37eff"></stop>
+        </linearGradient>
+      </defs>
+      <path
+        fill="url(#a)"
+        fillRule="evenodd"
+        d="M228 228h-76l-38-76h76z"
+        clipRule="evenodd"
+      ></path>
+      <path
+        fill="url(#b)"
+        fillRule="evenodd"
+        d="M76 76H0l38 76h76L76 76zm152 0h-76L114 0h76l38 76zM114 0H38l38 76h76L114 0z"
+        clipRule="evenodd"
+      ></path>
+      <path
+        fill="url(#c)"
+        fillRule="evenodd"
+        d="M228 76h-76l-38 76h76z"
+        clipRule="evenodd"
+      ></path>
+    </svg>
+  ),
 } as const;
 
 export const arrayIcons = Object.entries(Icons).map(([key, Icon]) => ({

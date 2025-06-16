@@ -26,7 +26,13 @@ import {
   SelectLabel,
   SelectTrigger,
 } from "@/components/ui/select";
-import { getAvailableModelsWithCategories, getModelConfig } from "@/lib/models";
+import {
+  getAvailableImageGenModels,
+  getAvailableImageGenModelsWithCategories,
+  getAvailableModelsWithCategories,
+  getImageGenModelConfig,
+  getModelConfig,
+} from "@/lib/models";
 import { arrayIcons } from "@/components/ui/icons";
 import { useConfigStore } from "@/store/use-config";
 import { ToolsEnabled } from "@/components/chat";
@@ -44,8 +50,6 @@ type PromptInputProps = {
   onSubmit: (prompt: string) => void | Promise<void>;
   toolsEnabled: ToolsEnabled;
   setToolsEnabled: React.Dispatch<React.SetStateAction<ToolsEnabled>>;
-  model: ModelId;
-  setModel: React.Dispatch<React.SetStateAction<ModelId>>;
 };
 
 export function PromptInput({
@@ -53,8 +57,6 @@ export function PromptInput({
   onSubmit,
   toolsEnabled,
   setToolsEnabled,
-  model,
-  setModel,
 }: PromptInputProps) {
   const [prompt, setPrompt] = React.useState("");
 
@@ -66,7 +68,19 @@ export function PromptInput({
     setPrompt("");
   }, [prompt, onSubmit]);
 
+  const {
+    selectedModel: model,
+    setSelectedModel: setModel,
+    selectedImageGenModel: imageGenModel,
+    setSelectedImageGenModel: setImageGenModel,
+  } = useConfigStore();
+
+  console.log("Selected model:", model);
+  console.log("Selected image generation model:", imageGenModel);
+
   const availableModels = getAvailableModelsWithCategories();
+  const availableImageGenModels = getAvailableImageGenModelsWithCategories();
+  const selectedImageGenModel = getImageGenModelConfig(imageGenModel);
   const selectedModel = getModelConfig(model);
   const getKey = useConfigStore((state) => state.getKey);
 
@@ -90,25 +104,23 @@ export function PromptInput({
               value={model}
               onValueChange={(value) => setModel(value as ModelId)}
             >
-              <PromptInputAction tooltip="Change model">
-                <SelectTrigger
-                  size="sm"
-                  className={cn(
-                    buttonVariants({
-                      variant: "outline",
-                      size: "sm",
-                    }),
-                    "rounded-full cursor-pointer max-w-36 justify-start"
-                  )}
-                >
-                  {(() => {
-                    const Icon = arrayIcons.find(
-                      (icon) => icon.key === selectedModel.icon
-                    )?.Icon;
-                    return Icon ? <Icon /> : null;
-                  })()}
-                </SelectTrigger>
-              </PromptInputAction>
+              <SelectTrigger
+                size="sm"
+                className={cn(
+                  buttonVariants({
+                    variant: "outline",
+                    size: "sm",
+                  }),
+                  "rounded-full cursor-pointer max-w-36 justify-start"
+                )}
+              >
+                {(() => {
+                  const Icon = arrayIcons.find(
+                    (icon) => icon.key === selectedModel.icon
+                  )?.Icon;
+                  return Icon ? <Icon /> : null;
+                })()}
+              </SelectTrigger>
 
               <SelectContent>
                 {Object.entries(
@@ -152,22 +164,86 @@ export function PromptInput({
               </SelectContent>
             </Select>
 
+            <Select
+              value={imageGenModel}
+              onValueChange={(value) => setImageGenModel(value as ModelId)}
+            >
+              <SelectTrigger
+                size="sm"
+                className={cn(
+                  buttonVariants({
+                    variant: "outline",
+                    size: "sm",
+                  }),
+                  "rounded-full cursor-pointer max-w-36 justify-start"
+                )}
+              >
+                {(() => {
+                  const Icon = arrayIcons.find(
+                    (icon) => icon.key === selectedImageGenModel.icon
+                  )?.Icon;
+                  return Icon ? <Icon /> : null;
+                })()}
+              </SelectTrigger>
+
+              <SelectContent>
+                {Object.entries(
+                  availableImageGenModels.reduce(
+                    (groups, availableModel) => {
+                      const category = availableModel.category || "Other";
+                      if (!groups[category]) {
+                        groups[category] = [];
+                      }
+                      groups[category].push(availableModel);
+                      return groups;
+                    },
+                    {} as Record<string, typeof availableImageGenModels>
+                  )
+                ).map(([category, models]) => (
+                  <SelectGroup key={category}>
+                    <SelectLabel>{category}</SelectLabel>
+                    {models.map((availableModel) => {
+                      const mdlConfig = getImageGenModelConfig(
+                        availableModel.model
+                      );
+                      const Icon = arrayIcons.find(
+                        (icon) => icon.key === mdlConfig.icon
+                      )?.Icon;
+
+                      return (
+                        <SelectItem
+                          key={availableModel.model}
+                          value={availableModel.model}
+                          className="cursor-pointer"
+                          disabled={
+                            mdlConfig.availableWhen === "byok" &&
+                            !getKey(mdlConfig.provider)
+                          }
+                        >
+                          {Icon && <Icon className="mr-2 h-4 w-4" />}
+                          {availableModel.modelName}
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectGroup>
+                ))}
+              </SelectContent>
+            </Select>
+
             <DropdownMenu>
-              <PromptInputAction tooltip="Configure tools">
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className={cn(
-                      buttonVariants({ variant: "outline", size: "sm" }),
-                      "rounded-full cursor-pointer"
-                    )}
-                  >
-                    <IconAdjustmentsHorizontal size={18} />
-                    <IconChevronDown className="opacity-50 text-muted-foreground" />
-                  </Button>
-                </DropdownMenuTrigger>
-              </PromptInputAction>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className={cn(
+                    buttonVariants({ variant: "outline", size: "sm" }),
+                    "rounded-full cursor-pointer"
+                  )}
+                >
+                  <IconAdjustmentsHorizontal size={18} />
+                  <IconChevronDown className="opacity-50 text-muted-foreground" />
+                </Button>
+              </DropdownMenuTrigger>
 
               <DropdownMenuContent align="start" className="w-48">
                 <DropdownMenuLabel>Tools</DropdownMenuLabel>
