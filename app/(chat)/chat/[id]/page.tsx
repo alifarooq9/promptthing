@@ -39,6 +39,7 @@ export default async function ChatId({ params }: ChatIdProps) {
         role: message.role,
         content: message.content,
         parts: message.parts ? JSON.parse(message.parts) : [],
+        experimental_attachments: message.attachments,
       }) as UIMessage
   );
 

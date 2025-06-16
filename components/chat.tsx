@@ -8,7 +8,7 @@ import {
 import { Message, MessageContent } from "@/components/ui/message";
 import { Markdown } from "@/components/ui/markdown";
 import { ScrollButton } from "@/components/ui/scroll-button";
-import { PromptInput } from "@/components/prompt-input";
+import { PromptInput } from "@/components/prompt-input/prompt-input";
 import { AssistantMessageActions } from "@/components/assistant-message-actions";
 import {
   Reasoning,
@@ -23,10 +23,11 @@ import { useConfigStore } from "@/store/use-config";
 import { getImageGenModelConfig, getModelConfig } from "@/lib/models";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { UIMessage } from "ai";
+import { Attachment, UIMessage } from "ai";
 import { Id } from "@/convex/_generated/dataModel";
 import { toast } from "sonner";
 import Link from "next/link";
+import { IconPaperclip } from "@tabler/icons-react";
 
 type ChatProps = {
   chatId?: string;
@@ -60,7 +61,9 @@ export function Chat({ chatId, initialMessages, sharedChat }: ChatProps) {
     search: false,
     generateImage: false,
   });
-  const [isLoading, setIsLoading] = React.useState(false);
+  const [isLoading, setIsLoading] = React.useState<string | null>(null);
+  const generateUploadUrls = useMutation(api.attachments.generateUploadUrls);
+  const getStorageUrl = useMutation(api.attachments.getStorageUrl);
 
   const { selectedModel: model, selectedImageGenModel: imageGenModel } =
     useConfigStore();
@@ -97,9 +100,13 @@ export function Chat({ chatId, initialMessages, sharedChat }: ChatProps) {
 
   const handleCreateNewChat = useMutation(api.chat.createChat);
 
-  const handleOnSubmit = async (prompt: string) => {
+  const handleOnSubmit = async (
+    prompt: string,
+    files?: File[],
+    handleRemoveAllFiles?: () => void
+  ) => {
     let generatedId = id;
-    setIsLoading(true);
+    setIsLoading("Creating chat...");
     if (isNewChat && !chatId && !id) {
       try {
         const { success, data: newChatId } = await handleCreateNewChat({
@@ -124,14 +131,68 @@ export function Chat({ chatId, initialMessages, sharedChat }: ChatProps) {
       } catch (error) {
         toast.error("Failed to create new chat. Please try again.");
         console.error("Error creating new chat:", error);
-        setIsLoading(false);
+        setIsLoading(null);
       }
     }
-    setIsLoading(false);
+
+    setIsLoading(null);
+
+    let attachments: Attachment[] = [];
+
+    if (files && files.length > 0) {
+      setIsLoading("Uploading files...");
+      try {
+        const urls = await generateUploadUrls({ count: files.length });
+        if (!urls.success || !urls.data || !urls.data.urls) {
+          throw new Error(urls.message || "Failed to generate upload URLs");
+        }
+        const uploadUrls = urls.data.urls;
+        for (const [index, file] of files.entries()) {
+          const response = await fetch(uploadUrls[index], {
+            method: "POST",
+            headers: { "Content-Type": file.type }, // e.g. application/pdf
+            body: file, // a Blob or ArrayBuffer
+          });
+          if (!response.ok) {
+            throw new Error(
+              `Failed to upload file: ${file.name}. Status: ${response.status}`
+            );
+          }
+          const { storageId } = await response.json();
+
+          const { success, data } = await getStorageUrl({
+            storageId: storageId as Id<"_storage">,
+          });
+
+          if (!success || !data || !data.url) {
+            throw new Error("Failed to get storage URL for uploaded file");
+          }
+          attachments.push({
+            contentType: file.type,
+            name: file.name,
+            url: data.url,
+          });
+        }
+        if (handleRemoveAllFiles) {
+          handleRemoveAllFiles();
+        }
+        setIsLoading(null);
+      } catch (error) {
+        console.error("Error generating upload URLs:", error);
+        toast.error("An error occurred while preparing to upload your files.");
+        setIsLoading(null);
+      }
+    }
+
+    console.log("Attachments prepared:", attachments);
 
     try {
       await append(
-        { role: "user", content: prompt.trim() },
+        {
+          role: "user",
+          content: prompt.trim(),
+          experimental_attachments: attachments,
+        },
         { body: { chatId: generatedId } }
       );
     } catch (error) {
@@ -147,13 +208,15 @@ export function Chat({ chatId, initialMessages, sharedChat }: ChatProps) {
   return (
     <div className="h-svh relative">
       <ChatContainerRoot className="w-full h-full flex flex-1 flex-col">
-        <ChatContainerContent className="p-4 relative space-y-14 pt-24 pb-38 w-full max-w-3xl mx-auto">
+        <ChatContainerContent className="p-4 relative space-y-14 pt-24 pb-64 w-full max-w-3xl mx-auto">
           {messages.map((message, index) => {
             const isAssistant = message.role === "assistant";
 
             const toolInvoked = message.parts.find(
               (part) => part.type === "tool-invocation"
             );
+
+            console.log(message);
 
             return (
               <Message
@@ -244,9 +307,34 @@ export function Chat({ chatId, initialMessages, sharedChat }: ChatProps) {
                     )}
                   </div>
                 ) : (
-                  <MessageContent className="bg-muted text-foreground px-4">
-                    {message.content}
-                  </MessageContent>
+                  <div className="flex flex-col items-end gap-6">
+                    {message?.experimental_attachments?.map(
+                      (attachment, index) =>
+                        attachment.contentType?.startsWith("image/") ? (
+                          <img
+                            key={`${message.id}-${index}`}
+                            src={attachment.url}
+                            width={300}
+                            height={300}
+                            alt={attachment.name ?? `attachment-${index}`}
+                            className="rounded-xl"
+                          />
+                        ) : (
+                          <div
+                            key={`${message.id}-${index}`}
+                            className="flex items-center gap-2 p-3 border border-border bg-muted/40 rounded-xl"
+                          >
+                            <IconPaperclip className="size-4" />
+                            <span className="max-w-[220px] truncate">
+                              {attachment.name}
+                            </span>
+                          </div>
+                        )
+                    )}
+                    <MessageContent className="bg-muted w-fit text-foreground px-4">
+                      {message.content}
+                    </MessageContent>
+                  </div>
                 )}
               </Message>
             );

@@ -1,17 +1,20 @@
 import { Id } from "@/convex/_generated/dataModel";
 import { mutation, query } from "@/convex/_generated/server";
+import {} from "@/convex/_generated/dataModel";
 import { auth } from "@/convex/auth";
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { v } from "convex/values";
+import schema from "@/convex/schema";
 
 export const createMessage = mutation({
   args: {
     content: v.string(),
     chatId: v.id("chat"),
-    role: v.union(v.literal("user"), v.literal("assistant")),
+    role: schema.tables.message.validator.fields.role,
     parts: v.string(),
+    attachments: schema.tables.message.validator.fields.attachments,
   },
-  handler: async (ctx, { content, chatId, role, parts }) => {
+  handler: async (ctx, { content, chatId, role, parts, attachments }) => {
     const userId = await getAuthUserId(ctx);
     console.log("userId", userId);
 
@@ -36,6 +39,7 @@ export const createMessage = mutation({
       role,
       parts,
       userId,
+      attachments,
     });
 
     return {

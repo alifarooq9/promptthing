@@ -121,6 +121,13 @@ export async function POST(req: Request) {
             content: message?.content as string,
             role: "user",
             parts: JSON.stringify(message?.parts || []),
+            attachments: message.experimental_attachments
+              ? message?.experimental_attachments?.map((attachment) => ({
+                  url: attachment.url,
+                  name: attachment.name || "",
+                  contentType: attachment.contentType || "",
+                }))
+              : undefined,
           });
         }
       },

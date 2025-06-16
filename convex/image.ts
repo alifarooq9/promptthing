@@ -1,4 +1,4 @@
-import { action } from "@/convex/_generated/server";
+import { action, mutation } from "@/convex/_generated/server";
 import { v } from "convex/values";
 import {
   experimental_generateImage as generateImage,

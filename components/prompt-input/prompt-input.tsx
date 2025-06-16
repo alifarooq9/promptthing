@@ -10,10 +10,11 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import {
   IconArrowUp,
   IconMicrophone,
-  IconChevronDown,
   IconAdjustmentsHorizontal,
   IconWorld,
   IconPhotoScan,
+  IconPaperclip,
+  IconX,
 } from "@tabler/icons-react";
 import React from "react";
 import { cn } from "@/lib/utils";
@@ -24,7 +25,6 @@ import {
   SelectItem,
   SelectGroup,
   SelectLabel,
-  SelectTrigger,
 } from "@/components/ui/select";
 import {
   getAvailableImageGenModelsWithCategories,
@@ -43,10 +43,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Attachments } from "@/components/prompt-input/attachments";
+import { SelectTrigger } from "@radix-ui/react-select";
 
 type PromptInputProps = {
   isLoading?: boolean;
-  onSubmit: (prompt: string) => void | Promise<void>;
+  onSubmit: (
+    prompt: string,
+    files?: File[],
+    handleRemoveAllFiles?: () => void
+  ) => void | Promise<void>;
   toolsEnabled: ToolsEnabled;
   setToolsEnabled: React.Dispatch<React.SetStateAction<ToolsEnabled>>;
 };
@@ -59,11 +65,15 @@ export function PromptInput({
 }: PromptInputProps) {
   const [prompt, setPrompt] = React.useState("");
 
+  const removeAllFiles = React.useCallback(() => {
+    setFiles([]);
+  }, []);
+
   const handleOnSubmit = React.useCallback(() => {
     if (!prompt.trim()) {
       return;
     }
-    onSubmit(prompt);
+    onSubmit(prompt, files, removeAllFiles);
     setPrompt("");
   }, [prompt, onSubmit]);
 
@@ -74,14 +84,17 @@ export function PromptInput({
     setSelectedImageGenModel: setImageGenModel,
   } = useConfigStore();
 
-  console.log("Selected model:", model);
-  console.log("Selected image generation model:", imageGenModel);
-
   const availableModels = getAvailableModelsWithCategories();
   const availableImageGenModels = getAvailableImageGenModelsWithCategories();
   const selectedImageGenModel = getImageGenModelConfig(imageGenModel);
   const selectedModel = getModelConfig(model);
   const getKey = useConfigStore((state) => state.getKey);
+
+  const [files, setFiles] = React.useState<File[]>([]);
+
+  const handleRemoveFile = (index: number) => {
+    setFiles((prev) => prev.filter((_, i) => i !== index));
+  };
 
   return (
     <PromptInputUi
@@ -92,25 +105,64 @@ export function PromptInput({
       className="border-border bg-popover relative z-10 w-full rounded-3xl border p-0 pt-1 shadow-xs"
     >
       <div className="flex flex-col">
+        {files.length > 0 && (
+          <div className="flex flex-wrap gap-2 pb-2 px-3 pt-2">
+            {files.map((file, index) => (
+              <div
+                key={index}
+                className="bg-muted border border-border flex items-center gap-2 rounded-lg p-0.5 text-sm"
+              >
+                {file.type.startsWith("image/") ? (
+                  <div className="relative size-14">
+                    <img
+                      src={URL.createObjectURL(file)}
+                      alt={file.name}
+                      className="size-14 object-cover rounded-md"
+                    />
+                    <button
+                      onClick={() => handleRemoveFile(index)}
+                      className="bg-white rounded-full cursor-pointer absolute top-1 p-px right-1 z-50"
+                    >
+                      <IconX className="size-3.5 text-black" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 p-3">
+                    <IconPaperclip className="size-4" />
+                    <span className="max-w-[120px] truncate">{file.name}</span>
+                    <button
+                      onClick={() => handleRemoveFile(index)}
+                      className="bg-white rounded-full cursor-pointer p-px"
+                    >
+                      <IconX className="size-3.5 text-black" />
+                    </button>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
         <PromptInputTextarea
           placeholder="Ask anything"
           className="min-h-[44px] pt-3 pl-4 text-base leading-[1.3] sm:text-base md:text-base"
         />
 
         <PromptInputActions className="mt-5 flex w-full items-center justify-between gap-2 px-3 pb-3">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
+            <Attachments files={files} setFiles={setFiles} />
+
             <Select
               value={model}
               onValueChange={(value) => setModel(value as ModelId)}
             >
               <SelectTrigger
-                size="sm"
                 className={cn(
                   buttonVariants({
                     variant: "outline",
-                    size: "sm",
+                    size: "icon",
                   }),
-                  "rounded-full cursor-pointer max-w-36 justify-start"
+                  "rounded-full cursor-pointer"
                 )}
               >
                 {(() => {
@@ -168,13 +220,12 @@ export function PromptInput({
               onValueChange={(value) => setImageGenModel(value as ModelId)}
             >
               <SelectTrigger
-                size="sm"
                 className={cn(
                   buttonVariants({
                     variant: "outline",
-                    size: "sm",
+                    size: "icon",
                   }),
-                  "rounded-full cursor-pointer max-w-36 justify-start"
+                  "rounded-full cursor-pointer"
                 )}
               >
                 {(() => {
@@ -233,14 +284,10 @@ export function PromptInput({
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="outline"
-                  size="sm"
-                  className={cn(
-                    buttonVariants({ variant: "outline", size: "sm" }),
-                    "rounded-full cursor-pointer"
-                  )}
+                  size="icon"
+                  className={cn("rounded-full cursor-pointer")}
                 >
-                  <IconAdjustmentsHorizontal size={18} />
-                  <IconChevronDown className="opacity-50 text-muted-foreground" />
+                  <IconAdjustmentsHorizontal />
                 </Button>
               </DropdownMenuTrigger>
 

@@ -18,6 +18,15 @@ export default defineSchema({
     chatId: v.id("chat"),
     parts: v.string(),
     userId: v.id("users"),
+    attachments: v.optional(
+      v.array(
+        v.object({
+          contentType: v.string(),
+          url: v.string(),
+          name: v.string(),
+        })
+      )
+    ),
   })
     .index("by_chatId", ["chatId"])
     .index("by_userId", ["userId"]),
