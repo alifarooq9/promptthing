@@ -1,21 +1,15 @@
-import {
-  appendResponseMessages,
-  smoothStream,
-  streamText,
-  ToolSet,
-  UIMessage,
-} from "ai";
+import { appendResponseMessages, smoothStream, streamText, ToolSet } from "ai";
 import { GoogleGenerativeAIProviderOptions } from "@ai-sdk/google";
 import { OpenRouterProviderOptions } from "@openrouter/ai-sdk-provider";
 import { getModel } from "@/lib/models";
 import { generateImageTool, webSearchTool } from "@/lib/tools";
-import { ModelId } from "@/config/models";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { convexAuthNextjsToken } from "@convex-dev/auth/nextjs/server";
 import { AnthropicProviderOptions } from "@ai-sdk/anthropic";
 import { OpenAIResponsesProviderOptions } from "@ai-sdk/openai";
+import { BodyRequest } from "@/components/chat";
 
 const client = new ConvexHttpClient(
   process.env.NEXT_PUBLIC_CONVEX_URL as string
@@ -31,18 +25,8 @@ export async function POST(req: Request) {
     toolsApiKey,
     chatId,
     message,
-  }: {
-    messages: UIMessage[];
-    search: boolean;
-    generateImage: boolean;
-    model: ModelId;
-    apiKey?: string;
-    chatId: string;
-    toolsApiKey?: {
-      runware?: string;
-    };
-    message: UIMessage;
-  } = await req.json();
+    imageGenModel,
+  }: BodyRequest = await req.json();
 
   const token = await convexAuthNextjsToken();
   if (!token) {
@@ -69,12 +53,15 @@ export async function POST(req: Request) {
       };
     }
 
-    console.log(generateImage, tools);
+    console.log(generateImage, toolsApiKey);
 
     if (generateImage) {
       tools = {
         ...tools,
-        generateImage: generateImageTool(toolsApiKey?.runware as string),
+        generateImage: generateImageTool(
+          toolsApiKey?.runware as string,
+          imageGenModel
+        ),
       };
     }
 
@@ -88,7 +75,7 @@ export async function POST(req: Request) {
       Your answers will be used in a chat application.
       Your responses should be always in markdown format.
       ${search ? "You can search the web for up-to-date information. use in if necessary." : ""}
-      ${generateImage ? "You can create/generate an image based on a prompt." : ""}`,
+      ${generateImage ? "You can create/generate an image based on a prompt. NOTES: YOU DON'T NEED TO SHOW THE IMAGE WITH THE URL, WE ALREADY HAVE COMPONENT WHICH WILL SHOW THE IMAGE ABOVE YOUR TEXT" : ""}`,
       messages,
       maxTokens: 2048,
       experimental_transform: [smoothStream({ chunking: "line" })],

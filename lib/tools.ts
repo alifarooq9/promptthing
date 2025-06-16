@@ -1,4 +1,6 @@
+import { ImageGenModelId } from "@/config/models";
 import { api } from "@/convex/_generated/api";
+import { getImageGenModel } from "@/lib/models";
 import { tavily } from "@tavily/core";
 import { tool } from "ai";
 import { fetchAction } from "convex/nextjs";
@@ -18,38 +20,43 @@ export function webSearchTool() {
       query: z.string().min(1).max(100).describe("The search query"),
     }),
     execute: async ({ query }) => {
-      const response = await tvly.search(query, {
-        maxResults: 5,
-        searchDepth: "advanced",
-        includeRawContent: "text",
-      });
+      try {
+        const response = await tvly.search(query, {
+          maxResults: 5,
+          searchDepth: "advanced",
+          includeRawContent: "text",
+        });
 
-      return response.results.map((result) => ({
-        title: result.title,
-        url: result.url,
-        description: result.content,
-        content: result.content,
-        score: result.score,
-        rawContent: result.rawContent?.slice(0, 1000) ?? "",
-      }));
+        return response.results.map((result) => ({
+          title: result.title,
+          url: result.url,
+          description: result.content,
+          content: result.content,
+          score: result.score,
+          rawContent: result.rawContent?.slice(0, 1000) ?? "",
+        }));
+      } catch (error) {
+        console.error("Error during web search:", error);
+        throw new Error("Failed to perform web search");
+      }
     },
   });
 }
 
-export function generateImageTool(apiKey: string) {
+export function generateImageTool(
+  apiKey: string,
+  imageGenModel: ImageGenModelId
+) {
   return tool({
     description: "Generate and transform an image based on a prompt",
     parameters: z.object({
-      prompt: z
-        .string()
-        .min(1)
-        .max(256)
-        .describe("The image generation prompt"),
+      prompt: z.string().min(1).describe("The image generation prompt"),
     }),
     execute: async ({ prompt }) => {
-      return await fetchAction(api.image.generateAndStore, {
+      return fetchAction(api.image.generateAndStore, {
         prompt,
         apiKey,
+        imageGenModel,
       });
     },
   });

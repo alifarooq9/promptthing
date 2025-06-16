@@ -1,35 +1,45 @@
 import { action } from "@/convex/_generated/server";
 import { v } from "convex/values";
-//@ts-expect-error
-import { createRunware } from "@runware/ai-sdk-provider";
 import {
   experimental_generateImage as generateImage,
   NoImageGeneratedError,
 } from "ai";
 import { Id } from "@/convex/_generated/dataModel";
+import { getImageGenModel } from "@/lib/models";
 
 export const generateAndStore = action({
   args: {
     prompt: v.string(),
     apiKey: v.string(),
+    imageGenModel: v.string(),
   },
-  handler: async (ctx, { prompt, apiKey }) => {
+  handler: async (ctx, { prompt, apiKey, imageGenModel }) => {
+    console.log(prompt, apiKey, imageGenModel);
+
     try {
       let imagesUrls: string[] = [];
-      const runware = createRunware({
-        apiKey,
-      });
+      const model = getImageGenModel(imageGenModel, apiKey);
+
+      if (!model) {
+        throw new Error("Image generation model not found");
+      }
 
       const { images } = await generateImage({
-        model: runware.image("runware:100@1", {
-          maxImagesPerCall: 2,
-        }),
+        model: model.model,
         prompt,
-        n: 2,
+        n: 1,
         providerOptions: {
-          runware: {
-            steps: 4,
-          },
+          ...(model.provider === "runware" && {
+            runware: {
+              steps: 8,
+            },
+          }),
+          ...(model.provider === "openai" && {
+            openai: {
+              quality: "standard",
+              style: "vivid",
+            },
+          }),
         },
         size: "1024x1024",
       });

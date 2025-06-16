@@ -23,6 +23,7 @@ const isProviderSupported = (provider: Provider): boolean => {
     "openrouter",
     "anthropic",
     "openai",
+    "runware",
   ];
   return supportedProviders.includes(provider);
 };
@@ -182,24 +183,35 @@ const createImageGenModel = (
         `Install the required package: bun add @ai-sdk/${config.provider}`
     );
   }
+
   switch (config.provider) {
     case "runware": {
       console.log(`Using Runware model: ${config.modelName}`);
+      console.log(apiKey);
       const runware = createRunware({
         apiKey,
       });
       return runware.image(config.model, {
-        maxImagesPerCall: 2,
+        maxImagesPerCall: 1,
       });
+    }
+
+    case "openai": {
+      console.log(`Using OpenAI model: ${config.modelName}`);
+      const openai = createOpenAI({ apiKey });
+      return openai.image(config.model);
+    }
+
+    default: {
+      throw new Error(
+        `Unsupported provider: ${config.provider}. Make sure to install the required @ai-sdk package.`
+      );
     }
   }
 };
 
-export const getImageGenModel = (
-  model?: string,
-  apiKey?: string
-): ReturnType<typeof createImageGenModel> => {
-  const selectedModel = model || imageGenModelsIds["runware:100@1"];
+export const getImageGenModel = (model?: string, apiKey?: string) => {
+  const selectedModel = model || "runware:100@1";
 
   const config = imageGenModelsConfig[selectedModel];
 
@@ -209,7 +221,11 @@ export const getImageGenModel = (
     );
   }
 
-  return createImageGenModel(config, apiKey);
+  return {
+    model: createImageGenModel(config, apiKey),
+    modelName: config.modelName,
+    provider: config.provider,
+  };
 };
 
 export const getAvailableImageGenModels = () => {

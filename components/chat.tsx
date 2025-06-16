@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/reasoning";
 import { useChat } from "@ai-sdk/react";
 import React from "react";
-import { ModelId } from "@/config/models";
+import { ImageGenModelId, ModelId } from "@/config/models";
 import { useConfigStore } from "@/store/use-config";
 import { getModelConfig } from "@/lib/models";
 import { useMutation } from "convex/react";
@@ -36,6 +36,20 @@ type ChatProps = {
 export type ToolsEnabled = {
   search: boolean;
   generateImage: boolean;
+};
+
+export type BodyRequest = {
+  messages: UIMessage[];
+  search: boolean;
+  generateImage: boolean;
+  model: ModelId;
+  imageGenModel: ImageGenModelId;
+  apiKey?: string;
+  chatId: string;
+  toolsApiKey?: {
+    runware?: string;
+  };
+  message: UIMessage;
 };
 
 export function Chat({ chatId, initialMessages, sharedChat }: ChatProps) {
@@ -70,7 +84,8 @@ export function Chat({ chatId, initialMessages, sharedChat }: ChatProps) {
         toolsApiKey: {
           runware: runwareApiKey,
         },
-      };
+        imageGenModel: "runware:100@1",
+      } as BodyRequest;
     },
     initialMessages: initialMessages ?? undefined,
   });
