@@ -137,7 +137,7 @@ export function Chat({ chatId, initialMessages, sharedChat }: ChatProps) {
 
     setIsLoading(null);
 
-    let attachments: Attachment[] = [];
+    const attachments: Attachment[] = [];
 
     if (files && files.length > 0) {
       setIsLoading("Uploading files...");
@@ -254,13 +254,15 @@ export function Chat({ chatId, initialMessages, sharedChat }: ChatProps) {
                         .flatMap((part) =>
                           part.type === "tool-invocation" &&
                           // @ts-expect-error
-                          part.toolInvocation.result
-                            ? // @ts-expect-error
-                              Array.isArray(part.toolInvocation.result)
+                          part.toolInvocation.result.imagesUrls
+                            ? Array.isArray(
+                                // @ts-expect-error
+                                part.toolInvocation.result.imagesUrls
+                              )
                               ? // @ts-expect-error
-                                part.toolInvocation.result
+                                part.toolInvocation.result.imagesUrls
                               : // @ts-expect-error
-                                [part.toolInvocation.result]
+                                [part.toolInvocation.result.imagesUrls]
                             : []
                         );
 

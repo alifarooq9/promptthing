@@ -72,6 +72,7 @@ export function generateImageTool(
 
       return {
         imagesUrls: data.imagesUrls,
+        storageIds: data.storageIds,
         message: "Image generated successfully",
       };
     },

@@ -133,6 +133,26 @@ export const deleteChatAndMessages = mutation({
         message: "User does not have permission to delete this chat",
       };
     }
+
+    // Delete all messages associated with the chat
+    const messages = await ctx.db
+      .query("message")
+      .withIndex("by_chatId", (q) => q.eq("chatId", chat._id))
+      .collect();
+    for (const message of messages) {
+      if (message.storageIds) {
+        for (const storageId of message.storageIds) {
+          try {
+            await ctx.storage.delete(storageId);
+          } catch (error) {
+            console.error(`Failed to delete storage ID ${storageId}:`, error);
+          }
+        }
+      }
+
+      await ctx.db.delete(message._id);
+    }
+
     await ctx.db.delete(chatId);
 
     return { success: true, data: true, message: "Chat deleted successfully" };

@@ -18,6 +18,7 @@ export const generateAndStore = action({
 
     try {
       let imagesUrls: string[] = [];
+      let storageIds: Id<"_storage">[] = [];
       const model = getImageGenModel(imageGenModel, apiKey);
 
       if (!model) {
@@ -34,7 +35,7 @@ export const generateAndStore = action({
         providerOptions: {
           ...(model.provider === "runware" && {
             runware: {
-              steps: 8,
+              steps: 20,
             },
           }),
           ...(model.provider === "openai" && {
@@ -57,12 +58,13 @@ export const generateAndStore = action({
         const url = await ctx.storage.getUrl(storageId);
         if (url) {
           imagesUrls.push(url);
+          storageIds.push(storageId);
         }
       }
 
       return {
         success: true,
-        data: { imagesUrls },
+        data: { imagesUrls, storageIds },
         message: "Image generated successfully",
       };
     } catch (error) {

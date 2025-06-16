@@ -13,8 +13,12 @@ export const createMessage = mutation({
     role: schema.tables.message.validator.fields.role,
     parts: v.string(),
     attachments: schema.tables.message.validator.fields.attachments,
+    storageIds: v.optional(v.array(v.id("_storage"))),
   },
-  handler: async (ctx, { content, chatId, role, parts, attachments }) => {
+  handler: async (
+    ctx,
+    { content, chatId, role, parts, attachments, storageIds }
+  ) => {
     const userId = await getAuthUserId(ctx);
     console.log("userId", userId);
 
@@ -40,6 +44,7 @@ export const createMessage = mutation({
       parts,
       userId,
       attachments,
+      storageIds,
     });
 
     return {

@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { IconCloudUpload, IconPaperclip } from "@tabler/icons-react";
-import React, { useState } from "react";
+import React from "react";
 
 type AttachmentsProps = {
   files: File[];

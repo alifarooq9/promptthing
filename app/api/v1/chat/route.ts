@@ -136,6 +136,18 @@ export async function POST(req: Request) {
           messages: [message],
           responseMessages: response.messages,
         });
+        const toolInvocations = assistantMessage.parts?.filter(
+          (p) => p.type === "tool-invocation"
+        );
+        const generateImageToolInvocation = toolInvocations?.filter(
+          (p) => p.toolInvocation?.toolName === "generateImage"
+        );
+
+        const allStorageIds =
+          generateImageToolInvocation?.flatMap(
+            // @ts-expect-error
+            (p) => p.toolInvocation?.result?.storageIds || []
+          ) || [];
 
         try {
           await client.mutation(api.message.createMessage, {
@@ -146,6 +158,7 @@ export async function POST(req: Request) {
                 : "Some error occurred during the generation of the response, regenerate the response.",
             role: "assistant",
             parts: JSON.stringify(assistantMessage.parts || []),
+            storageIds: allStorageIds.length > 0 ? allStorageIds : undefined,
           });
           console.log("token", token);
         } catch (error) {

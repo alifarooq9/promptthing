@@ -27,6 +27,7 @@ export default defineSchema({
         })
       )
     ),
+    storageIds: v.optional(v.array(v.id("_storage"))),
   })
     .index("by_chatId", ["chatId"])
     .index("by_userId", ["userId"]),
