@@ -135,8 +135,6 @@ export function Chat({ chatId, initialMessages, sharedChat }: ChatProps) {
       }
     }
 
-    setIsLoading(null);
-
     const attachments: Attachment[] = [];
 
     if (files && files.length > 0) {
@@ -292,7 +290,11 @@ export function Chat({ chatId, initialMessages, sharedChat }: ChatProps) {
                               ? "Loading..."
                               : status === "error"
                                 ? "An error occurred while processing your request. try regenerating the response."
-                                : message.content}
+                                : message.content ||
+                                  (index === messages.length - 1 &&
+                                  status === "streaming"
+                                    ? "Loading..."
+                                    : "")}
                         </Markdown>
                       );
                     })()}
@@ -343,7 +345,7 @@ export function Chat({ chatId, initialMessages, sharedChat }: ChatProps) {
           })}
           {isLoading ? (
             <Message className="prose my-[1.25em] prose-neutral max-w-max dark:prose-invert text-foreground overflow-hidden">
-              Creating chat...
+              {isLoading}
             </Message>
           ) : null}
           {status === "submitted" ? (
