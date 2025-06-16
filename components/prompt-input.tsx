@@ -27,7 +27,6 @@ import {
   SelectTrigger,
 } from "@/components/ui/select";
 import {
-  getAvailableImageGenModels,
   getAvailableImageGenModelsWithCategories,
   getAvailableModelsWithCategories,
   getImageGenModelConfig,
