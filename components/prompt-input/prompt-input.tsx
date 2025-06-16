@@ -90,6 +90,8 @@ export function PromptInput({
   const selectedModel = getModelConfig(model);
   const getKey = useConfigStore((state) => state.getKey);
 
+  const canUseTools = selectedModel.canUseTools;
+
   const [files, setFiles] = React.useState<File[]>([]);
 
   const handleRemoveFile = (index: number) => {
@@ -280,48 +282,50 @@ export function PromptInput({
               </SelectContent>
             </Select>
 
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className={cn("rounded-full cursor-pointer")}
-                >
-                  <IconAdjustmentsHorizontal />
-                </Button>
-              </DropdownMenuTrigger>
+            {canUseTools && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className={cn("rounded-full cursor-pointer")}
+                  >
+                    <IconAdjustmentsHorizontal />
+                  </Button>
+                </DropdownMenuTrigger>
 
-              <DropdownMenuContent align="start" className="w-48">
-                <DropdownMenuLabel>Tools</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuCheckboxItem
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setToolsEnabled((prev) => ({
-                      ...prev,
-                      search: !prev.search,
-                    }));
-                  }}
-                  checked={toolsEnabled.search}
-                >
-                  <IconWorld />
-                  Search the web
-                </DropdownMenuCheckboxItem>
-                <DropdownMenuCheckboxItem
-                  checked={toolsEnabled.generateImage}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setToolsEnabled((prev) => ({
-                      ...prev,
-                      generateImage: !prev.generateImage,
-                    }));
-                  }}
-                >
-                  <IconPhotoScan />
-                  Create an image
-                </DropdownMenuCheckboxItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                <DropdownMenuContent align="start" className="w-48">
+                  <DropdownMenuLabel>Tools</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuCheckboxItem
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setToolsEnabled((prev) => ({
+                        ...prev,
+                        search: !prev.search,
+                      }));
+                    }}
+                    checked={toolsEnabled.search}
+                  >
+                    <IconWorld />
+                    Search the web
+                  </DropdownMenuCheckboxItem>
+                  <DropdownMenuCheckboxItem
+                    checked={toolsEnabled.generateImage}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setToolsEnabled((prev) => ({
+                        ...prev,
+                        generateImage: !prev.generateImage,
+                      }));
+                    }}
+                  >
+                    <IconPhotoScan />
+                    Create an image
+                  </DropdownMenuCheckboxItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
           </div>
           <div className="flex items-center gap-2">
             <PromptInputAction tooltip="Voice input">

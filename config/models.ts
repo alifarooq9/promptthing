@@ -16,6 +16,7 @@ export interface ModelConfig {
   supportsWebSearch: boolean;
   icon: keyof typeof Icons;
   availableWhen: "always" | "byok";
+  canUseTools: boolean;
 }
 
 export interface ImageGenModelConfig {
@@ -38,6 +39,7 @@ const modelDefinitions: Record<string, ModelConfig> = {
     supportsWebSearch: true,
     icon: "google" as const,
     availableWhen: "byok" as const,
+    canUseTools: true,
   },
   "gemini-2.5-flash-preview-04-17": {
     model: "gemini-2.5-flash-preview-04-17",
@@ -47,6 +49,7 @@ const modelDefinitions: Record<string, ModelConfig> = {
     supportsWebSearch: true,
     icon: "google" as const,
     availableWhen: "byok" as const,
+    canUseTools: true,
   },
   "gemini-2.5-flash": {
     model: "gemini-2.5-flash-preview-04-17", // Uses same underlying model
@@ -57,6 +60,7 @@ const modelDefinitions: Record<string, ModelConfig> = {
     supportsWebSearch: true,
     icon: "google" as const,
     availableWhen: "always" as const,
+    canUseTools: true,
   },
   "gemini-2.0-flash-thinking": {
     model: "gemini-2.0-flash-thinking",
@@ -66,6 +70,7 @@ const modelDefinitions: Record<string, ModelConfig> = {
     supportsWebSearch: true,
     icon: "google" as const,
     availableWhen: "byok" as const,
+    canUseTools: true,
   },
   "gemini-2.0-flash": {
     model: "gemini-2.0-flash",
@@ -76,6 +81,7 @@ const modelDefinitions: Record<string, ModelConfig> = {
     supportsWebSearch: true,
     icon: "google" as const,
     availableWhen: "always" as const,
+    canUseTools: true,
   },
   "gemini-2.0-flash-lite": {
     model: "gemini-2.0-flash-lite",
@@ -86,6 +92,7 @@ const modelDefinitions: Record<string, ModelConfig> = {
     supportsWebSearch: true,
     icon: "google" as const,
     availableWhen: "always" as const,
+    canUseTools: true,
   },
   "gemini-2.0-pro": {
     model: "gemini-2.0-pro",
@@ -95,15 +102,17 @@ const modelDefinitions: Record<string, ModelConfig> = {
     supportsWebSearch: true,
     icon: "google" as const,
     availableWhen: "byok" as const,
+    canUseTools: true,
   },
-  "deepseek/deepseek-r1-0528-qwen3-8b:free": {
-    model: "deepseek/deepseek-r1-0528-qwen3-8b:free",
+  "deepseek/deepseek-r1-0528:free": {
+    model: "deepseek/deepseek-r1-0528:free",
     provider: "openrouter" as const,
     modelName: "DeepSeek R1",
     canReason: true,
     supportsWebSearch: false,
     icon: "deepseek" as const,
     availableWhen: "byok" as const,
+    canUseTools: false,
   },
   "gpt-4.1-nano": {
     model: "gpt-4.1-nano",
@@ -113,6 +122,7 @@ const modelDefinitions: Record<string, ModelConfig> = {
     supportsWebSearch: true,
     icon: "openai" as const,
     availableWhen: "byok" as const,
+    canUseTools: true,
   },
   "gpt-4.1": {
     model: "gpt-4.1",
@@ -122,6 +132,7 @@ const modelDefinitions: Record<string, ModelConfig> = {
     supportsWebSearch: true,
     icon: "openai" as const,
     availableWhen: "byok" as const,
+    canUseTools: true,
   },
   o3: {
     model: "o3",
@@ -131,6 +142,7 @@ const modelDefinitions: Record<string, ModelConfig> = {
     supportsWebSearch: false,
     icon: "openai" as const,
     availableWhen: "byok" as const,
+    canUseTools: true,
   },
   "o3-mini": {
     model: "o3-mini",
@@ -140,6 +152,7 @@ const modelDefinitions: Record<string, ModelConfig> = {
     supportsWebSearch: false,
     icon: "openai" as const,
     availableWhen: "byok" as const,
+    canUseTools: true,
   },
   "claude-4-sonnet": {
     model: "claude-4-sonnet-20250514",
@@ -149,6 +162,7 @@ const modelDefinitions: Record<string, ModelConfig> = {
     supportsWebSearch: true,
     icon: "claude" as const,
     availableWhen: "byok" as const,
+    canUseTools: true,
   },
   "claude-4-sonnet-thinking": {
     model: "claude-4-sonnet-20250514",
@@ -158,6 +172,7 @@ const modelDefinitions: Record<string, ModelConfig> = {
     supportsWebSearch: true,
     icon: "claude" as const,
     availableWhen: "byok" as const,
+    canUseTools: true,
   },
   "claude-4-opus": {
     model: "claude-4-opus-20250514",
@@ -167,6 +182,7 @@ const modelDefinitions: Record<string, ModelConfig> = {
     supportsWebSearch: true,
     icon: "claude" as const,
     availableWhen: "byok" as const,
+    canUseTools: true,
   },
   "claude-3-7-sonnet-thinking": {
     model: "claude-3-7-sonnet-20250219",
@@ -176,6 +192,7 @@ const modelDefinitions: Record<string, ModelConfig> = {
     supportsWebSearch: true,
     icon: "claude" as const,
     availableWhen: "byok" as const,
+    canUseTools: true,
   },
   "claude-3-7-sonnet": {
     model: "claude-3-7-sonnet-20250219",
@@ -185,6 +202,7 @@ const modelDefinitions: Record<string, ModelConfig> = {
     supportsWebSearch: true,
     icon: "claude" as const,
     availableWhen: "byok" as const,
+    canUseTools: true,
   },
   "claude-3-5-sonnet": {
     model: "claude-3-5-sonnet-20241022",
@@ -194,6 +212,7 @@ const modelDefinitions: Record<string, ModelConfig> = {
     supportsWebSearch: true,
     icon: "claude" as const,
     availableWhen: "byok" as const,
+    canUseTools: true,
   },
 } as const;
 

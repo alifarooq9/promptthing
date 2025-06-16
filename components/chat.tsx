@@ -182,9 +182,10 @@ export function Chat({ chatId, initialMessages, sharedChat }: ChatProps) {
       }
     }
 
-    console.log("Attachments prepared:", attachments);
+    setIsLoading(null);
 
     try {
+      setIsLoading("Sending message..."); // Add loading state for message sending
       await append(
         {
           role: "user",
@@ -193,8 +194,10 @@ export function Chat({ chatId, initialMessages, sharedChat }: ChatProps) {
         },
         { body: { chatId: generatedId } }
       );
+      setIsLoading(null); // Clear loading after append completes
     } catch (error) {
       console.error("Error appending message:", error);
+      setIsLoading(null); // Clear loading on error
       toast.error(
         error instanceof Error
           ? error.message
@@ -290,11 +293,7 @@ export function Chat({ chatId, initialMessages, sharedChat }: ChatProps) {
                               ? "Loading..."
                               : status === "error"
                                 ? "An error occurred while processing your request. try regenerating the response."
-                                : message.content ||
-                                  (index === messages.length - 1 &&
-                                  status === "streaming"
-                                    ? "Loading..."
-                                    : "")}
+                                : message.content}
                         </Markdown>
                       );
                     })()}
