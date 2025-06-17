@@ -23,12 +23,17 @@ import { useConfigStore } from "@/store/use-config";
 import { getImageGenModelConfig, getModelConfig } from "@/lib/models";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { Attachment, UIMessage } from "ai";
+import { Attachment, UIMessage, Message as AIMessage } from "ai";
 import { Id } from "@/convex/_generated/dataModel";
 import { toast } from "sonner";
 import Link from "next/link";
 import { IconPaperclip } from "@tabler/icons-react";
 import { useAutoResume } from "@/hooks/use-auto-resume";
+
+// Generate UUID for message IDs
+function generateUUID() {
+  return crypto.randomUUID();
+}
 
 type ChatProps = {
   chatId?: string;
@@ -87,6 +92,9 @@ export function Chat({ chatId, initialMessages, sharedChat }: ChatProps) {
   } = useChat({
     id,
     api: "/api/v1/chat",
+    experimental_throttle: 100,
+    sendExtraMessageFields: true,
+    generateId: generateUUID,
     experimental_prepareRequestBody(body) {
       const finalChatId =
         (body.requestBody as { chatId?: string }).chatId || id;
@@ -95,7 +103,7 @@ export function Chat({ chatId, initialMessages, sharedChat }: ChatProps) {
         generateImage: toolsEnabled.generateImage,
         model,
         apiKey,
-        message: body.messages.at(-1),
+        message: body.messages[messages.length - 1],
         messages: body.messages,
         chatId: finalChatId,
         toolsApiKey: {
@@ -109,10 +117,10 @@ export function Chat({ chatId, initialMessages, sharedChat }: ChatProps) {
 
   const handleCreateNewChat = useMutation(api.chat.createChat);
 
-  // Enable auto-resume functionality exactly like Vercel
+  // Enable auto-resume functionality only for existing chats
   useAutoResume({
-    autoResume: true, // Always enable for existing chats
-    initialMessages: initialMessages || [],
+    autoResume: !!chatId, // Only enable for existing chats with an ID
+    initialMessages: (initialMessages || []) as AIMessage[],
     experimental_resume,
     data,
     setMessages,

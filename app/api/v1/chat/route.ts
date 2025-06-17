@@ -27,8 +27,6 @@ const client = new ConvexHttpClient(
   process.env.NEXT_PUBLIC_CONVEX_URL as string
 );
 
-export const maxDuration = 60;
-
 let globalStreamContext: ResumableStreamContext | null = null;
 
 function getStreamContext() {
@@ -107,6 +105,7 @@ export async function POST(req: Request) {
 
     // Generate a unique stream ID
     const streamId = generateUniqueId();
+    console.log("Creating new stream with ID:", streamId);
 
     // Save the stream ID to the database
     await client.mutation(api.chat.createStreamId, {
@@ -239,10 +238,12 @@ export async function POST(req: Request) {
     const streamContext = getStreamContext();
 
     if (streamContext) {
+      console.log("Using resumable stream context for stream:", streamId);
       return new Response(
         await streamContext.resumableStream(streamId, () => stream)
       );
     } else {
+      console.log("No stream context available, using regular stream");
       return new Response(stream);
     }
   } catch (error) {
@@ -260,7 +261,12 @@ export async function GET(request: Request) {
   const streamContext = getStreamContext();
   const resumeRequestedAt = new Date();
 
+  console.log("GET request for stream resumption", {
+    streamContext: !!streamContext,
+  });
+
   if (!streamContext) {
+    console.log("No stream context available for resumption");
     return new Response(null, { status: 204 });
   }
 
@@ -306,8 +312,11 @@ export async function GET(request: Request) {
     const recentStreamId = streamIdsQuery.data.at(-1);
 
     if (!recentStreamId) {
+      console.log("No recent stream found for chat:", chatId);
       return new Response("No recent stream found", { status: 404 });
     }
+
+    console.log("Attempting to resume stream:", recentStreamId);
 
     const emptyDataStream = createDataStream({
       execute: () => {},
