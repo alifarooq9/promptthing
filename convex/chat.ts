@@ -14,6 +14,7 @@ export const createChat = mutation({
           role: schema.tables.message.validator.fields.role,
           parts: schema.tables.message.validator.fields.parts,
           attachments: schema.tables.message.validator.fields.attachments,
+          id: v.string(),
         })
       )
     ),
@@ -50,6 +51,7 @@ export const createChat = mutation({
           parts: message.parts,
           userId: user._id,
           attachments: message.attachments || [],
+          id: message.id,
         });
       }
     }

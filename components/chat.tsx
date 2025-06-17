@@ -144,6 +144,7 @@ export function Chat({ chatId, initialMessages, sharedChat }: ChatProps) {
                 content: msg.content,
                 role: msg.role as "user" | "assistant",
                 parts: JSON.stringify(msg.parts || []),
+                id: msg.id,
               })),
             }),
         });
@@ -249,7 +250,7 @@ export function Chat({ chatId, initialMessages, sharedChat }: ChatProps) {
 
               return (
                 <Message
-                  key={message.id}
+                  key={message.id + message.role}
                   className={
                     message.role === "user" ? "justify-end" : "justify-start"
                   }

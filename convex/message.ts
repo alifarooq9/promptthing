@@ -14,10 +14,11 @@ export const createMessage = mutation({
     parts: v.string(),
     attachments: schema.tables.message.validator.fields.attachments,
     storageIds: v.optional(v.array(v.id("_storage"))),
+    id: v.string(),
   },
   handler: async (
     ctx,
-    { content, chatId, role, parts, attachments, storageIds }
+    { content, chatId, role, parts, attachments, storageIds, id }
   ) => {
     const userId = await getAuthUserId(ctx);
     console.log("userId", userId);
@@ -45,6 +46,7 @@ export const createMessage = mutation({
       userId,
       attachments,
       storageIds,
+      id,
     });
 
     return {
@@ -93,7 +95,7 @@ export const getMessages = query({
 });
 
 export const deleteBulkMessages = mutation({
-  args: { messageIds: v.array(v.id("message")) },
+  args: { messageIds: v.array(v.string()) },
   handler: async (ctx, { messageIds }) => {
     const userId = await getAuthUserId(ctx);
     if (!userId) {
@@ -106,7 +108,11 @@ export const deleteBulkMessages = mutation({
     }
 
     for (const messageId of messageIds) {
-      const message = await ctx.db.get(messageId);
+      const message = await ctx.db
+        .query("message")
+        .withIndex("by_messageId", (q) => q.eq("id", messageId))
+        .unique();
+
       if (!message) {
         continue; // Skip if message does not exist
       }
@@ -116,7 +122,7 @@ export const deleteBulkMessages = mutation({
           message: "User does not have permission to delete this message",
         };
       }
-      await ctx.db.delete(messageId);
+      await ctx.db.delete(message._id);
     }
 
     return { success: true, message: "Messages deleted successfully" };

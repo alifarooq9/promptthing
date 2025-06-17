@@ -111,19 +111,30 @@ export async function POST(req: Request) {
     }
 
     // Save the user message first
-    await client.mutation(api.message.createMessage, {
-      chatId: chatId as Id<"chat">,
-      content: message?.content as string,
-      role: "user",
-      parts: JSON.stringify(message?.parts || []),
-      attachments: message?.experimental_attachments
-        ? message?.experimental_attachments?.map((attachment) => ({
-            url: attachment.url,
-            name: attachment.name || "",
-            contentType: attachment.contentType || "",
-          }))
-        : undefined,
-    });
+    const { success, data: userMessageId } = await client.mutation(
+      api.message.createMessage,
+      {
+        chatId: chatId as Id<"chat">,
+        content: message?.content as string,
+        role: "user",
+        parts: JSON.stringify(message?.parts || []),
+        attachments: message?.experimental_attachments
+          ? message?.experimental_attachments?.map((attachment) => ({
+              url: attachment.url,
+              name: attachment.name || "",
+              contentType: attachment.contentType || "",
+            }))
+          : undefined,
+        id: message.id,
+      }
+    );
+
+    if (!success || !userMessageId) {
+      console.error("Failed to save user message:", userMessageId);
+      return new Response("Failed to save user message", { status: 500 });
+    }
+
+    message.id = userMessageId;
 
     // Generate a unique stream ID
     const streamId = generateUniqueId();
@@ -207,17 +218,36 @@ export async function POST(req: Request) {
               ) || [];
 
             try {
-              await client.mutation(api.message.createMessage, {
-                chatId: chatId as Id<"chat">,
-                content:
-                  assistantMessage.content.trim() !== ""
-                    ? assistantMessage.content
-                    : "Some error occurred during the generation of the response, regenerate the response.",
-                role: "assistant",
-                parts: JSON.stringify(assistantMessage.parts || []),
-                storageIds:
-                  allStorageIds.length > 0 ? allStorageIds : undefined,
-              });
+              const { success, data: assistantMessageId } =
+                await client.mutation(api.message.createMessage, {
+                  chatId: chatId as Id<"chat">,
+                  content:
+                    assistantMessage.content.trim() !== ""
+                      ? assistantMessage.content
+                      : "Some error occurred during the generation of the response, regenerate the response.",
+                  role: "assistant",
+                  parts: JSON.stringify(assistantMessage.parts || []),
+                  storageIds:
+                    allStorageIds.length > 0 ? allStorageIds : undefined,
+                  attachments:
+                    assistantMessage.experimental_attachments?.map(
+                      (attachment) => ({
+                        url: attachment.url,
+                        name: attachment.name || "",
+                        contentType: attachment.contentType || "",
+                      })
+                    ) || [],
+                  id: assistantMessage.id,
+                });
+
+              if (!success || !assistantMessageId) {
+                console.error(
+                  "Failed to save assistant message:",
+                  assistantMessageId
+                );
+                throw new Error("Failed to save assistant message");
+              }
+              assistantMessage.id = assistantMessageId;
               console.log("token", token);
             } catch (error) {
               console.error("Error saving message:", error);

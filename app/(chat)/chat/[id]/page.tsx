@@ -35,7 +35,7 @@ export default async function ChatId({ params }: ChatIdProps) {
   const initialMessages = messages?.map(
     (message) =>
       ({
-        id: message._id,
+        id: message.id,
         role: message.role,
         content: message.content,
         parts: message.parts ? JSON.parse(message.parts) : [],

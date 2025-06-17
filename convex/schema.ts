@@ -14,6 +14,7 @@ export default defineSchema({
     .index("userId", ["userId"])
     .index("by_shareId", ["shareId"]),
   message: defineTable({
+    id: v.string(),
     content: v.string(),
     role: v.union(v.literal("user"), v.literal("assistant")),
     chatId: v.id("chat"),
@@ -31,7 +32,8 @@ export default defineSchema({
     storageIds: v.optional(v.array(v.id("_storage"))),
   })
     .index("by_chatId", ["chatId"])
-    .index("by_userId", ["userId"]),
+    .index("by_userId", ["userId"])
+    .index("by_messageId", ["id"]),
   streamIds: defineTable({
     chatId: v.id("chat"),
     streamId: v.string(),

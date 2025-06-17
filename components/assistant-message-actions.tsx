@@ -62,7 +62,7 @@ export function AssistantMessageActions({
 
     if (messagesToBeDeleted.length > 0) {
       await deleteBulkMessage({
-        messageIds: messagesToBeDeleted as Id<"message">[],
+        messageIds: messagesToBeDeleted.map((id) => id as string),
       });
     }
 
@@ -102,6 +102,7 @@ export function AssistantMessageActions({
                 name: a.name as string,
               }))
             : undefined,
+          id: msg.id,
         })),
         branched: true,
       });
