@@ -23,6 +23,8 @@ import {
 import { after } from "next/server";
 import { differenceInSeconds } from "date-fns";
 
+export const maxDuration = 60;
+
 const client = new ConvexHttpClient(
   process.env.NEXT_PUBLIC_CONVEX_URL as string
 );
@@ -35,8 +37,8 @@ function getStreamContext() {
       globalStreamContext = createResumableStreamContext({
         waitUntil: after,
       });
-    } catch (error) {
-      if ((error as Error).message.includes("REDIS_URL")) {
+    } catch (error: any) {
+      if (error.message.includes("REDIS_URL")) {
         console.log(
           " > Resumable streams are disabled due to missing REDIS_URL"
         );
@@ -103,6 +105,21 @@ export async function POST(req: Request) {
       };
     }
 
+    // Save the user message first
+    await client.mutation(api.message.createMessage, {
+      chatId: chatId as Id<"chat">,
+      content: message?.content as string,
+      role: "user",
+      parts: JSON.stringify(message?.parts || []),
+      attachments: message?.experimental_attachments
+        ? message?.experimental_attachments?.map((attachment) => ({
+            url: attachment.url,
+            name: attachment.name || "",
+            contentType: attachment.contentType || "",
+          }))
+        : undefined,
+    });
+
     // Generate a unique stream ID
     const streamId = generateUniqueId();
     console.log("Creating new stream with ID:", streamId);
@@ -128,7 +145,7 @@ export async function POST(req: Request) {
           ${generateImage ? "You can create/generate an image based on a prompt. NOTES: YOU DON'T NEED TO SHOW THE IMAGE WITH THE URL, WE ALREADY HAVE COMPONENT WHICH WILL SHOW THE IMAGE ABOVE YOUR TEXT" : ""}`,
           messages,
           maxTokens: 2048,
-          experimental_transform: [smoothStream({ chunking: "line" })],
+          experimental_transform: [smoothStream({ chunking: "word" })],
           tools: tools,
           maxSteps: 3,
           experimental_generateMessageId: generateUniqueId,
@@ -165,23 +182,7 @@ export async function POST(req: Request) {
               "anthropic-beta": "interleaved-thinking-2025-05-14",
             }),
           },
-          onStepFinish: async ({ stepType }) => {
-            if (stepType === "initial") {
-              await client.mutation(api.message.createMessage, {
-                chatId: chatId as Id<"chat">,
-                content: message?.content as string,
-                role: "user",
-                parts: JSON.stringify(message?.parts || []),
-                attachments: message.experimental_attachments
-                  ? message?.experimental_attachments?.map((attachment) => ({
-                      url: attachment.url,
-                      name: attachment.name || "",
-                      contentType: attachment.contentType || "",
-                    }))
-                  : undefined,
-              });
-            }
-          },
+
           onFinish: async ({ response }) => {
             const [, assistantMessage] = appendResponseMessages({
               messages: [message],
@@ -261,12 +262,7 @@ export async function GET(request: Request) {
   const streamContext = getStreamContext();
   const resumeRequestedAt = new Date();
 
-  console.log("GET request for stream resumption", {
-    streamContext: !!streamContext,
-  });
-
   if (!streamContext) {
-    console.log("No stream context available for resumption");
     return new Response(null, { status: 204 });
   }
 
@@ -274,27 +270,31 @@ export async function GET(request: Request) {
   const chatId = searchParams.get("chatId");
 
   if (!chatId) {
-    return new Response("Bad Request: Missing chatId parameter", {
-      status: 400,
-    });
+    return new Response(null, { status: 204 });
   }
 
   const token = await convexAuthNextjsToken();
   if (!token) {
-    return new Response("Unauthorized", { status: 401 });
+    console.log("❌ No auth token for resumption");
+    return new Response(null, { status: 204 });
   }
 
   client.setAuth(token);
 
   try {
+    console.log("🔍 Checking chat access for:", chatId);
+
     // Get the chat to verify access
     const chatQuery = await client.query(api.chat.getChatById, {
       chatId: chatId as Id<"chat">,
     });
 
     if (!chatQuery.success || !chatQuery.data) {
-      return new Response("Chat not found", { status: 404 });
+      console.log("❌ Chat not found or access denied");
+      return new Response(null, { status: 404 });
     }
+
+    console.log("✅ Chat found, checking for stream IDs");
 
     // Get stream IDs for this chat
     const streamIdsQuery = await client.query(api.chat.getStreamIdsByChatId, {
@@ -306,17 +306,19 @@ export async function GET(request: Request) {
       !streamIdsQuery.data ||
       streamIdsQuery.data.length === 0
     ) {
-      return new Response("No streams found", { status: 404 });
+      console.log("❌ No streams found for chat:", chatId);
+      return new Response(null, { status: 404 });
     }
 
     const recentStreamId = streamIdsQuery.data.at(-1);
+    console.log("🔍 Recent stream ID:", recentStreamId);
 
     if (!recentStreamId) {
-      console.log("No recent stream found for chat:", chatId);
-      return new Response("No recent stream found", { status: 404 });
+      console.log("❌ No recent stream found");
+      return new Response(null, { status: 404 });
     }
 
-    console.log("Attempting to resume stream:", recentStreamId);
+    console.log("📡 Attempting to resume stream:", recentStreamId);
 
     const emptyDataStream = createDataStream({
       execute: () => {},
@@ -332,21 +334,26 @@ export async function GET(request: Request) {
      * but the resumable stream has concluded at this point.
      */
     if (!stream) {
+      console.log("❌ No active stream found, checking for completed message");
+
       const messagesQuery = await client.query(api.message.getMessages, {
         chatId: chatId as Id<"chat">,
       });
 
       if (!messagesQuery.success || !messagesQuery.data) {
+        console.log("❌ No messages found");
         return new Response(emptyDataStream, { status: 200 });
       }
 
       const mostRecentMessage = messagesQuery.data.at(-1);
 
       if (!mostRecentMessage) {
+        console.log("❌ No recent message found");
         return new Response(emptyDataStream, { status: 200 });
       }
 
       if (mostRecentMessage.role !== "assistant") {
+        console.log("❌ Most recent message is not assistant");
         return new Response(emptyDataStream, { status: 200 });
       }
 
@@ -354,9 +361,11 @@ export async function GET(request: Request) {
       const timeDiff = differenceInSeconds(resumeRequestedAt, messageCreatedAt);
 
       if (timeDiff > 15) {
+        console.log("❌ Message too old:", timeDiff, "seconds");
         return new Response(emptyDataStream, { status: 200 });
       }
 
+      console.log("✅ Returning completed message as restored stream");
       const restoredStream = createDataStream({
         execute: (buffer) => {
           buffer.writeData({
@@ -369,7 +378,7 @@ export async function GET(request: Request) {
                 ? JSON.parse(mostRecentMessage.parts)
                 : [],
               experimental_attachments: mostRecentMessage.attachments || [],
-              createdAt: mostRecentMessage._creationTime,
+              createdAt: new Date(mostRecentMessage._creationTime),
             }),
           });
         },
@@ -378,9 +387,10 @@ export async function GET(request: Request) {
       return new Response(restoredStream, { status: 200 });
     }
 
+    console.log("✅ Returning active resumable stream");
     return new Response(stream, { status: 200 });
   } catch (error) {
-    console.error("Error in GET /api/v1/chat:", error);
+    console.error("❌ Error in GET /api/v1/chat:", error);
     return new Response("Internal Server Error", { status: 500 });
   }
 }

@@ -81,6 +81,8 @@ export function Chat({ chatId, initialMessages, sharedChat }: ChatProps) {
     state.getKey(getImageGenModelConfig(imageGenModel).provider)
   );
 
+  console.log(id, chatId);
+
   const {
     messages,
     append,
@@ -90,20 +92,21 @@ export function Chat({ chatId, initialMessages, sharedChat }: ChatProps) {
     experimental_resume,
     data,
   } = useChat({
-    id,
+    id: chatId || id,
     api: "/api/v1/chat",
     experimental_throttle: 100,
     sendExtraMessageFields: true,
     generateId: generateUUID,
     experimental_prepareRequestBody(body) {
       const finalChatId =
-        (body.requestBody as { chatId?: string }).chatId || id;
+        (body.requestBody as { chatId?: string })?.chatId || id;
       return {
+        id: body.id,
         search: toolsEnabled.search,
         generateImage: toolsEnabled.generateImage,
         model,
         apiKey,
-        message: body.messages[messages.length - 1],
+        message: body.messages.at(-1),
         messages: body.messages,
         chatId: finalChatId,
         toolsApiKey: {
@@ -233,177 +236,178 @@ export function Chat({ chatId, initialMessages, sharedChat }: ChatProps) {
   };
 
   return (
-    <div className="h-svh relative">
-      <ChatContainerRoot className="w-full h-full flex flex-1 flex-col">
-        <ChatContainerContent className="p-4 relative space-y-14 pt-24 pb-64 w-full max-w-3xl mx-auto">
-          {messages.map((message) => {
-            const isAssistant = message.role === "assistant";
+    <>
+      <div className="h-svh relative">
+        <ChatContainerRoot className="w-full h-full flex flex-1 flex-col">
+          <ChatContainerContent className="p-4 relative space-y-14 pt-24 pb-64 w-full max-w-3xl mx-auto">
+            {messages.map((message) => {
+              const isAssistant = message.role === "assistant";
 
-            const toolInvoked = message.parts.find(
-              (part) => part.type === "tool-invocation"
-            );
+              const toolInvoked = message.parts.find(
+                (part) => part.type === "tool-invocation"
+              );
 
-            console.log(message);
-
-            return (
-              <Message
-                key={message.id}
-                className={
-                  message.role === "user" ? "justify-end" : "justify-start"
-                }
-              >
-                {isAssistant ? (
-                  <div className="prose prose-neutral w-full max-w-none dark:prose-invert text-foreground overflow-hidden">
-                    {message.parts.filter((part) => part.type === "reasoning")
-                      .length > 0 && (
-                      <Reasoning>
-                        <ReasoningTrigger>Show reasoning</ReasoningTrigger>
-                        <ReasoningContent className="ml-2 border-l-2 px-2">
-                          {message.parts
-                            .filter((part) => part.type === "reasoning")
-                            .map((part, index) => (
-                              <ReasoningResponse
-                                key={index}
-                                text={part.reasoning}
-                              />
-                            ))}
-                        </ReasoningContent>
-                      </Reasoning>
-                    )}
-                    {(() => {
-                      const imageResults = message.parts
-                        .filter(
-                          (part) =>
+              return (
+                <Message
+                  key={message.id}
+                  className={
+                    message.role === "user" ? "justify-end" : "justify-start"
+                  }
+                >
+                  {isAssistant ? (
+                    <div className="prose prose-neutral w-full max-w-none dark:prose-invert text-foreground overflow-hidden">
+                      {message.parts.filter((part) => part.type === "reasoning")
+                        .length > 0 && (
+                        <Reasoning>
+                          <ReasoningTrigger>Show reasoning</ReasoningTrigger>
+                          <ReasoningContent className="ml-2 border-l-2 px-2">
+                            {message.parts
+                              .filter((part) => part.type === "reasoning")
+                              .map((part, index) => (
+                                <ReasoningResponse
+                                  key={index}
+                                  text={part.reasoning}
+                                />
+                              ))}
+                          </ReasoningContent>
+                        </Reasoning>
+                      )}
+                      {(() => {
+                        const imageResults = message.parts
+                          .filter(
+                            (part) =>
+                              part.type === "tool-invocation" &&
+                              part.toolInvocation?.toolName ===
+                                "generateImage" &&
+                              part.toolInvocation.state === "result"
+                          )
+                          .flatMap((part) =>
                             part.type === "tool-invocation" &&
-                            part.toolInvocation?.toolName === "generateImage" &&
-                            part.toolInvocation.state === "result"
-                        )
-                        .flatMap((part) =>
-                          part.type === "tool-invocation" &&
-                          // @ts-expect-error
-                          part.toolInvocation.result.imagesUrls
-                            ? Array.isArray(
-                                // @ts-expect-error
-                                part.toolInvocation.result.imagesUrls
-                              )
-                              ? // @ts-expect-error
-                                part.toolInvocation.result.imagesUrls
-                              : // @ts-expect-error
-                                [part.toolInvocation.result.imagesUrls]
-                            : []
-                        );
+                            // @ts-expect-error
+                            part.toolInvocation.result.imagesUrls
+                              ? Array.isArray(
+                                  // @ts-expect-error
+                                  part.toolInvocation.result.imagesUrls
+                                )
+                                ? // @ts-expect-error
+                                  part.toolInvocation.result.imagesUrls
+                                : // @ts-expect-error
+                                  [part.toolInvocation.result.imagesUrls]
+                              : []
+                          );
 
-                      return imageResults.length > 0 ? (
-                        <div className="w-full space-y-4">
-                          <PreviewImages images={imageResults} />
-                          {message.content && (
-                            <Markdown>{message.content}</Markdown>
-                          )}
-                        </div>
-                      ) : (
-                        <Markdown>
-                          {status === "streaming" &&
-                          toolInvoked?.toolInvocation.state === "call"
-                            ? toolInvoked?.toolInvocation?.toolName ===
-                              "webSearch"
-                              ? "Searching the web..."
-                              : toolInvoked?.toolInvocation?.toolName ===
-                                  "generateImage"
-                                ? "Generating image..."
-                                : "Invoking tool..."
-                            : status === "streaming" &&
-                                message.content === "" &&
-                                !message.parts
-                                  .flatMap((part) => part.type)
-                                  .includes("reasoning")
-                              ? "Loading..."
-                              : message.content}
-                        </Markdown>
-                      );
-                    })()}
-                    {/* {(index === messages.length - 1
-                      ? status !== "streaming"
-                      : true) && (
-                      <AssistantMessageActions
-                        message={message}
-                        messages={messages}
-                        setMessages={setMessages}
-                        append={append}
-                        chatId={id as Id<"chat">}
-                      />
-                    )} */}
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-end gap-6">
-                    {message?.experimental_attachments?.map(
-                      (attachment, index) =>
-                        attachment.contentType?.startsWith("image/") ? (
-                          <img
-                            key={`${message.id}-${index}`}
-                            src={attachment.url}
-                            width={300}
-                            height={300}
-                            alt={attachment.name ?? `attachment-${index}`}
-                            className="rounded-xl"
-                          />
-                        ) : (
-                          <div
-                            key={`${message.id}-${index}`}
-                            className="flex items-center gap-2 p-3 border border-border bg-muted/40 rounded-xl"
-                          >
-                            <IconPaperclip className="size-4" />
-                            <span className="max-w-[220px] truncate">
-                              {attachment.name}
-                            </span>
+                        return imageResults.length > 0 ? (
+                          <div className="w-full space-y-4">
+                            <PreviewImages images={imageResults} />
+                            {message.content && (
+                              <Markdown>{message.content}</Markdown>
+                            )}
                           </div>
-                        )
-                    )}
-                    <MessageContent className="bg-muted w-fit text-foreground px-4">
-                      {message.content}
-                    </MessageContent>
-                  </div>
-                )}
+                        ) : (
+                          <Markdown>
+                            {status === "streaming" &&
+                            toolInvoked?.toolInvocation.state === "call"
+                              ? toolInvoked?.toolInvocation?.toolName ===
+                                "webSearch"
+                                ? "Searching the web..."
+                                : toolInvoked?.toolInvocation?.toolName ===
+                                    "generateImage"
+                                  ? "Generating image..."
+                                  : "Invoking tool..."
+                              : status === "streaming" &&
+                                  message.content === "" &&
+                                  !message.parts
+                                    .flatMap((part) => part.type)
+                                    .includes("reasoning")
+                                ? "Loading..."
+                                : message.content}
+                          </Markdown>
+                        );
+                      })()}
+                      {/* {(index === messages.length - 1
+                        ? status !== "streaming"
+                        : true) && (
+                        <AssistantMessageActions
+                          message={message}
+                          messages={messages}
+                          setMessages={setMessages}
+                          append={append}
+                          chatId={id as Id<"chat">}
+                        />
+                      )} */}
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-end gap-6">
+                      {message?.experimental_attachments?.map(
+                        (attachment, index) =>
+                          attachment.contentType?.startsWith("image/") ? (
+                            <img
+                              key={`${message.id}-${index}`}
+                              src={attachment.url}
+                              width={300}
+                              height={300}
+                              alt={attachment.name ?? `attachment-${index}`}
+                              className="rounded-xl"
+                            />
+                          ) : (
+                            <div
+                              key={`${message.id}-${index}`}
+                              className="flex items-center gap-2 p-3 border border-border bg-muted/40 rounded-xl"
+                            >
+                              <IconPaperclip className="size-4" />
+                              <span className="max-w-[220px] truncate">
+                                {attachment.name}
+                              </span>
+                            </div>
+                          )
+                      )}
+                      <MessageContent className="bg-muted w-fit text-foreground px-4">
+                        {message.content}
+                      </MessageContent>
+                    </div>
+                  )}
+                </Message>
+              );
+            })}
+            {isLoading ? (
+              <Message className="prose my-[1.25em] prose-neutral max-w-max dark:prose-invert text-foreground overflow-hidden">
+                {isLoading}
               </Message>
-            );
-          })}
-          {isLoading ? (
-            <Message className="prose my-[1.25em] prose-neutral max-w-max dark:prose-invert text-foreground overflow-hidden">
-              {isLoading}
-            </Message>
-          ) : null}
-          {status === "submitted" ? (
-            <Message className="prose prose-neutral my-[1.25em] max-w-max dark:prose-invert text-foreground overflow-hidden">
-              Loading...
-            </Message>
-          ) : null}
-          {error && (
-            <Message>
-              <Markdown>
-                {error.message ||
-                  "An error occurred while processing your request."}
-              </Markdown>
-            </Message>
+            ) : null}
+            {status === "submitted" ? (
+              <Message className="prose prose-neutral my-[1.25em] max-w-max dark:prose-invert text-foreground overflow-hidden">
+                Loading...
+              </Message>
+            ) : null}
+            {error && (
+              <Message>
+                <Markdown>
+                  {error.message ||
+                    "An error occurred while processing your request."}
+                </Markdown>
+              </Message>
+            )}
+            <ChatContainerScrollAnchor />
+          </ChatContainerContent>
+          <div className="absolute w-fit max-w-2xl mx-auto inset-x-0 h-fit bottom-40">
+            <ScrollButton className="shadow-sm" />
+          </div>
+        </ChatContainerRoot>
+        <div className="absolute inset-x-0 bottom-0 mx-auto max-w-2xl px-3 pb-3 md:px-4 md:pb-4">
+          {sharedChat && (
+            <p className="text-center text-sm mb-1">
+              After you send a message, it will be visible to you only.
+            </p>
           )}
-          <ChatContainerScrollAnchor />
-        </ChatContainerContent>
-        <div className="absolute w-fit max-w-2xl mx-auto inset-x-0 h-fit bottom-40">
-          <ScrollButton className="shadow-sm" />
+          <PromptInput
+            isLoading={status === "streaming"}
+            onSubmit={handleOnSubmit}
+            toolsEnabled={toolsEnabled}
+            setToolsEnabled={setToolsEnabled}
+          />
         </div>
-      </ChatContainerRoot>
-      <div className="absolute inset-x-0 bottom-0 mx-auto max-w-2xl px-3 pb-3 md:px-4 md:pb-4">
-        {sharedChat && (
-          <p className="text-center text-sm mb-1">
-            After you send a message, it will be visible to you only.
-          </p>
-        )}
-        <PromptInput
-          isLoading={status === "streaming"}
-          onSubmit={handleOnSubmit}
-          toolsEnabled={toolsEnabled}
-          setToolsEnabled={setToolsEnabled}
-        />
       </div>
-    </div>
+    </>
   );
 }
 
