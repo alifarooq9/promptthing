@@ -13,11 +13,13 @@ export const createChat = mutation({
           content: schema.tables.message.validator.fields.content,
           role: schema.tables.message.validator.fields.role,
           parts: schema.tables.message.validator.fields.parts,
+          attachments: schema.tables.message.validator.fields.attachments,
         })
       )
     ),
+    branched: v.optional(v.boolean()),
   },
-  handler: async (ctx, { title, initialMessages }) => {
+  handler: async (ctx, { title, initialMessages, branched }) => {
     const userId = await getAuthUserId(ctx);
 
     if (!userId) {
@@ -32,6 +34,7 @@ export const createChat = mutation({
     const chatId = await ctx.db.insert("chat", {
       title,
       userId: user._id,
+      branched: branched ?? false,
     });
 
     if (!chatId) {
@@ -46,6 +49,7 @@ export const createChat = mutation({
           chatId: chatId,
           parts: message.parts,
           userId: user._id,
+          attachments: message.attachments || [],
         });
       }
     }

@@ -81,8 +81,6 @@ export function Chat({ chatId, initialMessages, sharedChat }: ChatProps) {
     state.getKey(getImageGenModelConfig(imageGenModel).provider)
   );
 
-  console.log(id, chatId);
-
   const {
     messages,
     append,

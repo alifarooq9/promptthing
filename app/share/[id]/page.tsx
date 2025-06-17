@@ -22,8 +22,6 @@ export default async function Share({
     }
   );
 
-  console.log(data?.isYourChat, "isYourChat");
-
   if (!success) {
     return notFound();
   }

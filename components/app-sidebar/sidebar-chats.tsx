@@ -1,6 +1,12 @@
 "use client";
 
-import { IconEdit, IconDots, IconTrash, IconShare } from "@tabler/icons-react";
+import {
+  IconEdit,
+  IconDots,
+  IconTrash,
+  IconShare,
+  IconGitBranch,
+} from "@tabler/icons-react";
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -34,7 +40,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import React from "react";
+import React, { useState } from "react";
 import { Icons } from "@/components/ui/icons";
 import { Button } from "@/components/ui/button";
 import {
@@ -160,13 +166,13 @@ type ChatItemProps = {
 function ChatItem({ chat }: ChatItemProps) {
   const router = useRouter();
   const params = useParams<{ id: string }>();
-  const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
-  const [renameDialogOpen, setRenameDialogOpen] = React.useState(false);
-  const [shareDialogOpen, setShareDialogOpen] = React.useState(false);
-  const [shareLink, setShareLink] = React.useState("Generate the link");
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [renameDialogOpen, setRenameDialogOpen] = useState(false);
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const [shareLink, setShareLink] = useState("Generate the link");
 
   const { isMobile } = useSidebar();
-  const [loading, setLoading] = React.useState(false);
+  const [loading, setLoading] = useState(false);
   const deleteChatsAndMessages = useMutation(api.chat.deleteChatAndMessages);
   const renameChat = useMutation(api.chat.renameChat);
   const createShareChat = useMutation(api.chat.createShareChat);
@@ -245,6 +251,7 @@ function ChatItem({ chat }: ChatItemProps) {
           )}
         >
           <Link href={`/chat/${chat._id}`}>
+            {chat.branched && <IconGitBranch />}
             <span className="truncate">{chat.title}</span>
           </Link>
         </SidebarMenuButton>
@@ -351,7 +358,7 @@ function ChatItem({ chat }: ChatItemProps) {
             <Button
               type="button"
               variant="outline"
-              onClick={() => setRenameDialogOpen(false)}
+              onClick={() => setShareDialogOpen(false)}
             >
               Cancel
             </Button>

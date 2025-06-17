@@ -5,10 +5,13 @@ import { Button } from "@/components/ui/button";
 import { MessageAction, MessageActions } from "@/components/ui/message";
 import { Id } from "@/convex/_generated/dataModel";
 import { ChatRequestOptions, CreateMessage, Message, UIMessage } from "ai";
-import { IconReload } from "@tabler/icons-react";
+import { IconGitBranch, IconReload } from "@tabler/icons-react";
 import React from "react";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { toast } from "sonner";
+import { Icons } from "@/components/ui/icons";
+import { useRouter } from "next/navigation";
 
 type AssistantMessageActionsProps = {
   message: UIMessage;
@@ -33,6 +36,8 @@ export function AssistantMessageActions({
   setIsLoading,
 }: AssistantMessageActionsProps) {
   const deleteBulkMessage = useMutation(api.message.deleteBulkMessages);
+  const createChatBranch = useMutation(api.chat.createChat);
+  const router = useRouter();
 
   const handleRegenerate = async () => {
     setIsLoading("Preparing for regenerate...");
@@ -72,6 +77,47 @@ export function AssistantMessageActions({
     setIsLoading(null);
   };
 
+  const [isCreatingBranch, setIsCreatingBranch] = React.useState(false);
+
+  const handleCreateBranch = async () => {
+    setIsCreatingBranch(true);
+    try {
+      const currentMessageIndex = messages.findIndex(
+        (msg) => msg.id === message.id
+      );
+
+      if (currentMessageIndex === -1) return;
+
+      const messagesToBrach = messages.slice(0, currentMessageIndex + 1);
+      const { success, data: chatId } = await createChatBranch({
+        title: message.content.slice(0, 40),
+        initialMessages: messagesToBrach.map((msg) => ({
+          content: msg.content,
+          role: msg.role as "user" | "assistant",
+          parts: JSON.stringify(msg.parts),
+          attachments: msg?.experimental_attachments
+            ? msg?.experimental_attachments?.map((a) => ({
+                contentType: a.contentType as string,
+                url: a.url as string,
+                name: a.name as string,
+              }))
+            : undefined,
+        })),
+        branched: true,
+      });
+      if (success) {
+        router.push(`/chat/${chatId}`);
+      } else {
+        toast.error("Failed to create branch");
+      }
+    } catch (error) {
+      console.error("Error creating branch:", error);
+      toast.error("Failed to create branch");
+    } finally {
+      setIsCreatingBranch(false);
+    }
+  };
+
   return (
     <MessageActions>
       <MessageAction tooltip="Copy message">
@@ -85,6 +131,16 @@ export function AssistantMessageActions({
           className="h-8 w-8 cursor-pointer"
         >
           <IconReload />
+        </Button>
+      </MessageAction>
+      <MessageAction tooltip="Create a branch">
+        <Button
+          onClick={handleCreateBranch}
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 cursor-pointer"
+        >
+          {isCreatingBranch ? <Icons.loader /> : <IconGitBranch />}
         </Button>
       </MessageAction>
     </MessageActions>

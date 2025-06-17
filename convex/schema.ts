@@ -9,6 +9,7 @@ export default defineSchema({
     userId: v.id("users"),
     shareId: v.optional(v.string()),
     lastSharedMessageId: v.optional(v.id("message")),
+    branched: v.optional(v.boolean()),
   })
     .index("userId", ["userId"])
     .index("by_shareId", ["shareId"]),
