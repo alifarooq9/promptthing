@@ -6,8 +6,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import Link from "next/link";
-import { Icon, IconProps, IconSettings } from "@tabler/icons-react";
-import { useSettingsModalStore } from "@/store/use-settings-modal";
+import { Icon, IconProps } from "@tabler/icons-react";
 
 export function NavMain({
   items,
@@ -21,8 +20,6 @@ export function NavMain({
     isActive?: boolean;
   }[];
 }) {
-  const openSettings = useSettingsModalStore((state) => state.open);
-
   return (
     <SidebarMenu>
       {items.map((item) => (
