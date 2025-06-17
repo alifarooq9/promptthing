@@ -44,7 +44,8 @@ export function webSearchTool() {
 
 export function generateImageTool(
   apiKey: string,
-  imageGenModel: ImageGenModelId
+  imageGenModel: ImageGenModelId,
+  attachmentUrl: string | undefined = undefined
 ) {
   return tool({
     description: "Generate and transform an image based on a prompt",
@@ -58,6 +59,7 @@ export function generateImageTool(
           prompt,
           apiKey,
           imageGenModel,
+          attachmentUrl,
         }
       );
 

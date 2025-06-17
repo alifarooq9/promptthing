@@ -245,6 +245,8 @@ export function Chat({ chatId, initialMessages, sharedChat }: ChatProps) {
                 (part) => part.type === "tool-invocation"
               );
 
+              console.log(message);
+
               return (
                 <Message
                   key={message.id}

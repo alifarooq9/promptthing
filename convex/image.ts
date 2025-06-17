@@ -12,9 +12,10 @@ export const generateAndStore = action({
     prompt: v.string(),
     apiKey: v.string(),
     imageGenModel: v.string(),
+    attachmentUrl: v.optional(v.string()),
   },
-  handler: async (ctx, { prompt, apiKey, imageGenModel }) => {
-    console.log(prompt, apiKey, imageGenModel);
+  handler: async (ctx, { prompt, apiKey, imageGenModel, attachmentUrl }) => {
+    console.log(prompt, apiKey, imageGenModel, attachmentUrl);
 
     try {
       let imagesUrls: string[] = [];
@@ -36,6 +37,7 @@ export const generateAndStore = action({
           ...(model.provider === "runware" && {
             runware: {
               steps: 20,
+              ...(attachmentUrl && { seedImage: attachmentUrl, strength: 0.8 }),
             },
           }),
           ...(model.provider === "openai" && {

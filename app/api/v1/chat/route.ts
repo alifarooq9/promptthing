@@ -96,11 +96,16 @@ export async function POST(req: Request) {
     console.log(generateImage, toolsApiKey);
 
     if (generateImage) {
+      const attachmentUrl = message?.experimental_attachments?.find(
+        (attachment) => attachment.contentType?.startsWith("image/")
+      )?.url;
+
       tools = {
         ...tools,
         generateImage: generateImageTool(
           toolsApiKey?.runware as string,
-          imageGenModel
+          imageGenModel,
+          attachmentUrl
         ),
       };
     }
@@ -142,7 +147,7 @@ export async function POST(req: Request) {
           Your answers will be used in a chat application.
           Your responses should be always in markdown format.
           ${search ? "You can search the web for up-to-date information. use in if necessary." : ""}
-          ${generateImage ? "You can create/generate an image based on a prompt. NOTES: YOU DON'T NEED TO SHOW THE IMAGE WITH THE URL, WE ALREADY HAVE COMPONENT WHICH WILL SHOW THE IMAGE ABOVE YOUR TEXT" : ""}`,
+          ${generateImage ? "You can create, generate and transform an image based on a prompt. NOTES: YOU DON'T NEED TO SHOW THE IMAGE WITH THE URL, WE ALREADY HAVE COMPONENT WHICH WILL SHOW THE IMAGE ABOVE YOUR TEXT" : ""}`,
           messages,
           maxTokens: 2048,
           experimental_transform: [smoothStream({ chunking: "word" })],
