@@ -35,13 +35,6 @@ export function NavMain({
           </SidebarMenuButton>
         </SidebarMenuItem>
       ))}
-
-      <SidebarMenuItem key="settings">
-        <SidebarMenuButton isActive={false} onClick={() => openSettings()}>
-          <IconSettings />
-          <span>Settings</span>
-        </SidebarMenuButton>
-      </SidebarMenuItem>
     </SidebarMenu>
   );
 }
