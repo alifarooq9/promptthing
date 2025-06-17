@@ -6,6 +6,9 @@ import { MessageAction, MessageActions } from "@/components/ui/message";
 import { Id } from "@/convex/_generated/dataModel";
 import { ChatRequestOptions, CreateMessage, Message, UIMessage } from "ai";
 import { IconReload } from "@tabler/icons-react";
+import React from "react";
+import { useMutation } from "convex/react";
+import { api } from "@/convex/_generated/api";
 
 type AssistantMessageActionsProps = {
   message: UIMessage;
@@ -18,6 +21,7 @@ type AssistantMessageActionsProps = {
     chatRequestOptions?: ChatRequestOptions
   ) => Promise<string | null | undefined>;
   chatId: Id<"chat">;
+  setIsLoading: React.Dispatch<React.SetStateAction<string | null>>;
 };
 
 export function AssistantMessageActions({
@@ -26,8 +30,12 @@ export function AssistantMessageActions({
   setMessages,
   append,
   chatId,
+  setIsLoading,
 }: AssistantMessageActionsProps) {
-  const handleRegenerate = () => {
+  const deleteBulkMessage = useMutation(api.message.deleteBulkMessages);
+
+  const handleRegenerate = async () => {
+    setIsLoading("Preparing for regenerate...");
     const currentMessageIndex = messages.findIndex(
       (msg) => msg.id === message.id
     );
@@ -36,17 +44,32 @@ export function AssistantMessageActions({
     const userMessage = messages[currentMessageIndex - 1];
     const truncatedMessages = messages.slice(0, currentMessageIndex - 1);
     setMessages(truncatedMessages);
-    append(
-      {
-        role: "user",
-        content: userMessage.content,
-      },
-      {
-        body: {
-          chatId,
-        },
-      }
+
+    const messagesToBeDeleted = messages
+      .slice(currentMessageIndex - 1)
+      .map((msg) => msg.id);
+
+    console.log(
+      "Messages to be deleted:",
+      messagesToBeDeleted,
+      truncatedMessages
     );
+
+    if (messagesToBeDeleted.length > 0) {
+      await deleteBulkMessage({
+        messageIds: messagesToBeDeleted as Id<"message">[],
+      });
+    }
+
+    setIsLoading("Regenerating response...");
+
+    await append(userMessage, {
+      body: {
+        chatId,
+      },
+    });
+
+    setIsLoading(null);
   };
 
   return (

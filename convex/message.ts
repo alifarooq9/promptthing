@@ -91,3 +91,34 @@ export const getMessages = query({
     };
   },
 });
+
+export const deleteBulkMessages = mutation({
+  args: { messageIds: v.array(v.id("message")) },
+  handler: async (ctx, { messageIds }) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
+      return { success: false, message: "User not authenticated" };
+    }
+
+    const user = await ctx.db.get(userId as Id<"users">);
+    if (!user) {
+      return { success: false, message: "User not found" };
+    }
+
+    for (const messageId of messageIds) {
+      const message = await ctx.db.get(messageId);
+      if (!message) {
+        continue; // Skip if message does not exist
+      }
+      if (message.userId !== user._id) {
+        return {
+          success: false,
+          message: "User does not have permission to delete this message",
+        };
+      }
+      await ctx.db.delete(messageId);
+    }
+
+    return { success: true, message: "Messages deleted successfully" };
+  },
+});

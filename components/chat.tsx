@@ -9,7 +9,7 @@ import { Message, MessageContent } from "@/components/ui/message";
 import { Markdown } from "@/components/ui/markdown";
 import { ScrollButton } from "@/components/ui/scroll-button";
 import { PromptInput } from "@/components/prompt-input/prompt-input";
-// import { AssistantMessageActions } from "@/components/assistant-message-actions";
+import { AssistantMessageActions } from "@/components/assistant-message-actions";
 import {
   Reasoning,
   ReasoningContent,
@@ -240,7 +240,7 @@ export function Chat({ chatId, initialMessages, sharedChat }: ChatProps) {
       <div className="h-svh relative">
         <ChatContainerRoot className="w-full h-full flex flex-1 flex-col">
           <ChatContainerContent className="p-4 relative space-y-14 pt-24 pb-64 w-full max-w-3xl mx-auto">
-            {messages.map((message) => {
+            {messages.map((message, index) => {
               const isAssistant = message.role === "assistant";
 
               const toolInvoked = message.parts.find(
@@ -324,7 +324,7 @@ export function Chat({ chatId, initialMessages, sharedChat }: ChatProps) {
                           </Markdown>
                         );
                       })()}
-                      {/* {(index === messages.length - 1
+                      {(index === messages.length - 1
                         ? status !== "streaming"
                         : true) && (
                         <AssistantMessageActions
@@ -333,8 +333,9 @@ export function Chat({ chatId, initialMessages, sharedChat }: ChatProps) {
                           setMessages={setMessages}
                           append={append}
                           chatId={id as Id<"chat">}
+                          setIsLoading={setIsLoading}
                         />
-                      )} */}
+                      )}
                     </div>
                   ) : (
                     <div className="flex flex-col items-end gap-6">
@@ -369,14 +370,9 @@ export function Chat({ chatId, initialMessages, sharedChat }: ChatProps) {
                 </Message>
               );
             })}
-            {isLoading ? (
+            {isLoading && status !== "streaming" ? (
               <Message className="prose my-[1.25em] prose-neutral max-w-max dark:prose-invert text-foreground overflow-hidden">
                 {isLoading}
-              </Message>
-            ) : null}
-            {status === "submitted" ? (
-              <Message className="prose prose-neutral my-[1.25em] max-w-max dark:prose-invert text-foreground overflow-hidden">
-                Loading...
               </Message>
             ) : null}
             {error && (
