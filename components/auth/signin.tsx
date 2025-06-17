@@ -3,175 +3,32 @@
 import {
   Card,
   CardContent,
-  CardFooter,
+  CardDescription,
   CardHeader,
+  CardTitle,
 } from "@/components/ui/card";
-import { z } from "zod";
 import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { IconEye, IconEyeOff, IconLock, IconMail } from "@tabler/icons-react";
 import React from "react";
 import { useAuthActions } from "@convex-dev/auth/react";
 
-const formSchema = z.object({
-  email: z
-    .string()
-    .email({
-      message: "Invalid email address",
-    })
-    .min(1, {
-      message: "Email is required",
-    }),
-  password: z
-    .string()
-    .min(8, {
-      message: "Password must be at least 8 characters long",
-    })
-    .refine((val) => /[A-Z]/.test(val), {
-      message: "Password must contain at least one uppercase letter",
-    })
-    .refine((val) => /[a-z]/.test(val), {
-      message: "Password must contain at least one lowercase letter",
-    })
-    .refine((val) => /\d/.test(val), {
-      message: "Password must contain at least one number",
-    }),
-});
-
 export default function Signin() {
-  const [show, setShow] = React.useState(false);
-
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      email: "",
-      password: "",
-    },
-  });
-
-  const onSubmit = async (data: z.infer<typeof formSchema>) => {
-    console.log("Form submitted:", data);
-    // Handle form submission logic here
-  };
-
   return (
     <section className="flex w-full flex-col items-center justify-center p-4 py-28 xl:px-6">
       <Card className="w-full max-w-md">
         <CardHeader className="flex flex-col items-center">
-          <h1 className="w-full text-center text-xl font-semibold text-balance">
+          <CardTitle className="w-full text-center text-xl font-semibold text-balance">
             Welcome to Promptthing
-          </h1>
-          <p className="text-muted-foreground w-full text-center text-sm text-balance">
-            Enter your email below to login to your account
-          </p>
+          </CardTitle>
+          <CardDescription>
+            Continue with google or github to get started
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field, fieldState }) => (
-                  <FormItem>
-                    <FormLabel>Email Address</FormLabel>
-                    <FormControl>
-                      <div className="relative w-full">
-                        <IconMail className="text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2" />
-                        <Input
-                          placeholder="ali@example.com"
-                          className="ps-8"
-                          aria-invalid={!!fieldState.invalid}
-                          {...field}
-                        />
-                      </div>
-                    </FormControl>
-                    <FormDescription>
-                      Enter your email address to login
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field, fieldState }) => (
-                  <FormItem>
-                    <div className="flex items-center justify-between">
-                      <FormLabel>Password</FormLabel>
-                      <a
-                        href="#"
-                        className="text-sm font-medium hover:underline hover:underline-offset-4"
-                      >
-                        Forgot password?
-                      </a>
-                    </div>
-                    <FormControl>
-                      <div className="relative w-full">
-                        <IconLock className="text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2" />
-                        <Input
-                          placeholder="Password"
-                          type={show ? "text" : "password"}
-                          className="ps-8 pe-9"
-                          aria-invalid={!!fieldState.invalid}
-                          {...field}
-                        />
-
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          type="button"
-                          className="absolute top-1/2 right-0.5 h-8 w-8 -translate-y-1/2 cursor-pointer"
-                          onClick={() => setShow(!show)}
-                        >
-                          {show ? <IconEyeOff /> : <IconEye />}
-                        </Button>
-                      </div>
-                    </FormControl>
-                    <FormDescription>
-                      Enter your password to login
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <Button type="submit" className="w-full cursor-pointer">
-                Continue with Email
-              </Button>
-            </form>
-          </Form>
-
-          <div className="after:border-border relative py-6 text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
-            <span className="bg-card text-muted-foreground relative z-10 px-2">
-              Or
-            </span>
-          </div>
-
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             <GoogleAuth />
             <GithubAuth />
           </div>
         </CardContent>
-        <CardFooter>
-          <p className="text-muted-foreground w-full text-center text-sm">
-            Want to create an account?{" "}
-            <a href="#" className="underline underline-offset-2">
-              Register
-            </a>
-          </p>
-        </CardFooter>
       </Card>
 
       <p className="text-muted-foreground mt-4 max-w-md text-center text-sm text-balance">
