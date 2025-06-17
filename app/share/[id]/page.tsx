@@ -44,8 +44,13 @@ export default async function Share({
         content: message.content,
         parts: message.parts ? JSON.parse(message.parts) : [],
         experimental_attachments: message.attachments,
+        createdAt: new Date(message._creationTime),
       }) as UIMessage
   );
 
-  return <Chat initialMessages={initialMessages} sharedChat />;
+  return (
+    <>
+      <Chat initialMessages={initialMessages} sharedChat />
+    </>
+  );
 }

@@ -251,3 +251,95 @@ export const getSharedChatWithMessages = query({
     };
   },
 });
+
+export const createStreamId = mutation({
+  args: { streamId: v.string(), chatId: v.id("chat") },
+  handler: async (ctx, { streamId, chatId }) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
+      return { success: false, message: "User not authenticated" };
+    }
+
+    const user = await ctx.db.get(userId as Id<"users">);
+    if (!user) {
+      return { success: false, message: "User not found" };
+    }
+
+    const chat = await ctx.db.get(chatId);
+    if (!chat || chat.userId !== user._id) {
+      return { success: false, message: "Chat not found or access denied" };
+    }
+
+    const streamIdDoc = await ctx.db.insert("streamIds", {
+      chatId,
+      streamId,
+    });
+
+    return {
+      success: true,
+      data: streamIdDoc,
+      message: "Stream ID created successfully",
+    };
+  },
+});
+
+export const getStreamIdsByChatId = query({
+  args: { chatId: v.id("chat") },
+  handler: async (ctx, { chatId }) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
+      return { success: false, message: "User not authenticated" };
+    }
+
+    const user = await ctx.db.get(userId as Id<"users">);
+    if (!user) {
+      return { success: false, message: "User not found" };
+    }
+
+    const chat = await ctx.db.get(chatId);
+    if (!chat || chat.userId !== user._id) {
+      return { success: false, message: "Chat not found or access denied" };
+    }
+
+    const streamIds = await ctx.db
+      .query("streamIds")
+      .withIndex("by_chatId", (q) => q.eq("chatId", chatId))
+      .collect();
+
+    return {
+      success: true,
+      data: streamIds.map((s) => s.streamId),
+      message: "Stream IDs retrieved successfully",
+    };
+  },
+});
+
+export const getChatById = query({
+  args: { chatId: v.id("chat") },
+  handler: async (ctx, { chatId }) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
+      return { success: false, message: "User not authenticated" };
+    }
+
+    const user = await ctx.db.get(userId as Id<"users">);
+    if (!user) {
+      return { success: false, message: "User not found" };
+    }
+
+    const chat = await ctx.db.get(chatId);
+    if (!chat) {
+      return { success: false, message: "Chat not found" };
+    }
+
+    if (chat.userId !== user._id) {
+      return { success: false, message: "Access denied" };
+    }
+
+    return {
+      success: true,
+      data: chat,
+      message: "Chat retrieved successfully",
+    };
+  },
+});

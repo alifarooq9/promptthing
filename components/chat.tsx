@@ -9,7 +9,7 @@ import { Message, MessageContent } from "@/components/ui/message";
 import { Markdown } from "@/components/ui/markdown";
 import { ScrollButton } from "@/components/ui/scroll-button";
 import { PromptInput } from "@/components/prompt-input/prompt-input";
-import { AssistantMessageActions } from "@/components/assistant-message-actions";
+// import { AssistantMessageActions } from "@/components/assistant-message-actions";
 import {
   Reasoning,
   ReasoningContent,
@@ -28,6 +28,7 @@ import { Id } from "@/convex/_generated/dataModel";
 import { toast } from "sonner";
 import Link from "next/link";
 import { IconPaperclip } from "@tabler/icons-react";
+import { useAutoResume } from "@/hooks/use-auto-resume";
 
 type ChatProps = {
   chatId?: string;
@@ -75,7 +76,15 @@ export function Chat({ chatId, initialMessages, sharedChat }: ChatProps) {
     state.getKey(getImageGenModelConfig(imageGenModel).provider)
   );
 
-  const { messages, append, status, setMessages, error } = useChat({
+  const {
+    messages,
+    append,
+    status,
+    setMessages,
+    error,
+    experimental_resume,
+    data,
+  } = useChat({
     id,
     api: "/api/v1/chat",
     experimental_prepareRequestBody(body) {
@@ -99,6 +108,15 @@ export function Chat({ chatId, initialMessages, sharedChat }: ChatProps) {
   });
 
   const handleCreateNewChat = useMutation(api.chat.createChat);
+
+  // Enable auto-resume functionality exactly like Vercel
+  useAutoResume({
+    autoResume: true, // Always enable for existing chats
+    initialMessages: initialMessages || [],
+    experimental_resume,
+    data,
+    setMessages,
+  });
 
   const handleOnSubmit = async (
     prompt: string,
@@ -210,7 +228,7 @@ export function Chat({ chatId, initialMessages, sharedChat }: ChatProps) {
     <div className="h-svh relative">
       <ChatContainerRoot className="w-full h-full flex flex-1 flex-col">
         <ChatContainerContent className="p-4 relative space-y-14 pt-24 pb-64 w-full max-w-3xl mx-auto">
-          {messages.map((message, index) => {
+          {messages.map((message) => {
             const isAssistant = message.role === "assistant";
 
             const toolInvoked = message.parts.find(
@@ -291,13 +309,11 @@ export function Chat({ chatId, initialMessages, sharedChat }: ChatProps) {
                                   .flatMap((part) => part.type)
                                   .includes("reasoning")
                               ? "Loading..."
-                              : status === "error"
-                                ? "An error occurred while processing your request. try regenerating the response."
-                                : message.content}
+                              : message.content}
                         </Markdown>
                       );
                     })()}
-                    {(index === messages.length - 1
+                    {/* {(index === messages.length - 1
                       ? status !== "streaming"
                       : true) && (
                       <AssistantMessageActions
@@ -307,7 +323,7 @@ export function Chat({ chatId, initialMessages, sharedChat }: ChatProps) {
                         append={append}
                         chatId={id as Id<"chat">}
                       />
-                    )}
+                    )} */}
                   </div>
                 ) : (
                   <div className="flex flex-col items-end gap-6">

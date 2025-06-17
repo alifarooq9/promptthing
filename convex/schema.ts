@@ -31,4 +31,10 @@ export default defineSchema({
   })
     .index("by_chatId", ["chatId"])
     .index("by_userId", ["userId"]),
+  streamIds: defineTable({
+    chatId: v.id("chat"),
+    streamId: v.string(),
+  })
+    .index("by_chatId", ["chatId"])
+    .index("by_streamId", ["streamId"]),
 });
